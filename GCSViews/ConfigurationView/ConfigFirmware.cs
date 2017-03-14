@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Windows.Forms;
@@ -35,7 +36,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 firstrun = false;
             }
 
-            if (MainV2.Advanced)
+            if (MainV2.DisplayConfiguration.isAdvancedMode)
             {
                 lbl_devfw.Visible = true;
                 lbl_Custom_firmware_label.Visible = true;
@@ -64,6 +65,10 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 softwares.Clear();
                 UpdateFWList();
                 CMB_history.Visible = false;
+            }
+            else if (keyData == (Keys.Control | Keys.P))
+            {
+                findfirmware(softwares.First(a => { return a.name.ToLower().Contains("px4"); }));
             }
 
             return base.ProcessCmdKey(ref msg, keyData);
@@ -153,64 +158,59 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 pictureBoxAPM.Text = temp.name;
                 pictureBoxAPM.Tag = temp;
             }
-            else if (temp.url2560.ToLower().Contains("APHIL-".ToLower()) ||
-                     temp.url2560.ToLower().Contains("apm1-hilsensors/ArduPlane".ToLower()))
-            {
-                pictureBoxAPHil.Text = temp.name;
-                pictureBoxAPHil.Tag = temp;
-            }
             else if (temp.url2560.ToLower().Contains("ac2-quad-".ToLower()) ||
-                     temp.url2560.ToLower().Contains("1-quad/ArduCopter".ToLower()))
+                     temp.url2560.ToLower().Contains("1-quad/ArduCopter".ToLower()) ||
+                     temp.name.ToLower().Contains("arducopter quad") ||
+                     temp.desc.ToLower().Contains("arducopter quad")
+                )
             {
                 pictureBoxQuad.Text = temp.name += " Quad";
                 pictureBoxQuad.Tag = temp;
             }
             else if (temp.url2560.ToLower().Contains("ac2-tri".ToLower()) ||
-                     temp.url2560.ToLower().Contains("-tri/ArduCopter".ToLower()))
+                     temp.url2560.ToLower().Contains("-tri/ArduCopter".ToLower()) ||
+                     temp.name.ToLower().Contains("arducopter tri") ||
+                     temp.desc.ToLower().Contains("arducopter tri"))
             {
                 pictureBoxTri.Text = temp.name += " Tri";
                 pictureBoxTri.Tag = temp;
             }
             else if (temp.url2560.ToLower().Contains("ac2-hexa".ToLower()) ||
-                     temp.url2560.ToLower().Contains("-hexa/ArduCopter".ToLower()))
+                     temp.url2560.ToLower().Contains("-hexa/ArduCopter".ToLower()) ||
+                     temp.name.ToLower().Contains("arducopter hexa") ||
+                     temp.desc.ToLower().Contains("arducopter hexa"))
             {
                 pictureBoxHexa.Text = temp.name += " Hexa";
                 pictureBoxHexa.Tag = temp;
             }
             else if (temp.url2560.ToLower().Contains("ac2-y6".ToLower()) ||
-                     temp.url2560.ToLower().Contains("-y6/ArduCopter".ToLower()))
+                     temp.url2560.ToLower().Contains("-y6/ArduCopter".ToLower()) ||
+                     temp.name.ToLower().Contains("arducopter y6") ||
+                     temp.desc.ToLower().Contains("arducopter y6"))
             {
                 pictureBoxY6.Text = temp.name += " Y6";
                 pictureBoxY6.Tag = temp;
             }
             else if (temp.url2560.ToLower().Contains("ac2-heli-".ToLower()) ||
-                     temp.url2560.ToLower().Contains("-heli/ArduCopter".ToLower()))
+                     temp.url2560.ToLower().Contains("-heli/ArduCopter".ToLower()) ||
+                     temp.name.ToLower().Contains("arducopter heli") ||
+                     temp.desc.ToLower().Contains("arducopter heli"))
             {
                 pictureBoxHeli.Text = temp.name += " heli";
                 pictureBoxHeli.Tag = temp;
             }
-            else if (temp.url2560.ToLower().Contains("ac2-helhil".ToLower()) ||
-                     temp.url2560.ToLower().Contains("-heli-hil/ArduCopter".ToLower()))
-            {
-                pictureBoxACHHil.Text = temp.name += " heli hil";
-                pictureBoxACHHil.Tag = temp;
-            }
-            else if (temp.url2560.ToLower().Contains("ac2-quadhil".ToLower()) ||
-                     temp.url2560.ToLower().Contains("-quad-hil/ArduCopter".ToLower()))
-            {
-                pictureBoxACHil.Text = temp.name += " hil";
-                pictureBoxACHil.Tag = temp;
-            }
             else if (temp.url2560.ToLower().Contains("ac2-octaquad-".ToLower()) ||
-                     temp.url2560.ToLower()
-                         .Contains("-octa-quad/ArduCopter".ToLower()))
+                     temp.url2560.ToLower().Contains("-octa-quad/ArduCopter".ToLower()) ||
+                     temp.name.ToLower().Contains("arducopter octa quad") ||
+                     temp.desc.ToLower().Contains("arducopter octa quad"))
             {
                 pictureBoxOctaQuad.Text = temp.name += " Octa Quad";
                 pictureBoxOctaQuad.Tag = temp;
             }
             else if (temp.url2560.ToLower().Contains("ac2-octa-".ToLower()) ||
-                     temp.url2560.ToLower()
-                         .Contains("-octa/ArduCopter".ToLower()))
+                     temp.url2560.ToLower().Contains("-octa/ArduCopter".ToLower()) ||
+                     temp.name.ToLower().Contains("arducopter octa") ||
+                     temp.desc.ToLower().Contains("arducopter octa"))
             {
                 pictureBoxOcta.Text = temp.name += " Octa";
                 pictureBoxOcta.Tag = temp;
@@ -321,7 +321,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         //Load custom firmware (old CTRL+C shortcut)
         private void Custom_firmware_label_Click(object sender, EventArgs e)
         {
-            using (var fd = new OpenFileDialog {Filter = "Firmware (*.hex;*.px4;*.vrx)|*.hex;*.px4;*.vrx"})
+            using (var fd = new OpenFileDialog {Filter = "Firmware (*.hex;*.px4;*.vrx)|*.hex;*.px4;*.vrx|All files (*.*)|*.*" })
             {
                 if (Directory.Exists(custom_fw_dir))
                     fd.InitialDirectory = custom_fw_dir;
@@ -336,7 +336,21 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                     var boardtype = BoardDetect.boards.none;
                     try
                     {
-                        boardtype = BoardDetect.DetectBoard(MainV2.comPortName);
+                        if (fd.FileName.ToLower().EndsWith(".px4"))
+                        {
+                            if (solo.Solo.is_solo_alive)
+                            {
+                                boardtype = BoardDetect.boards.solo;
+                            }
+                            else
+                            {
+                                boardtype = BoardDetect.boards.px4v2;
+                            }
+                        }
+                        else
+                        {
+                            boardtype = BoardDetect.DetectBoard(MainV2.comPortName);
+                        }
                     }
                     catch
                     {
@@ -357,109 +371,17 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             UpdateFWList();
             CMB_history.Visible = false;
         }
-
-        private void lbl_px4io_Click(object sender, EventArgs e)
-        {
-            CustomMessageBox.Show("Please save the px4io.bin file to your microsd card to insert into your px4.", "IO");
-
-            var baseurl = "http://firmware.diydrones.com/PX4IO/latest/PX4IO/px4io.bin";
-
-            try
-            {
-                // Create a request using a URL that can receive a post. 
-                var request = WebRequest.Create(baseurl);
-                request.Timeout = 10000;
-                // Set the Method property of the request to POST.
-                request.Method = "GET";
-                // Get the request stream.
-                Stream dataStream; //= request.GetRequestStream();
-                // Get the response.
-                var response = request.GetResponse();
-                // Display the status.
-                log.Info(((HttpWebResponse) response).StatusDescription);
-                // Get the stream containing content returned by the server.
-                dataStream = response.GetResponseStream();
-
-                var bytes = response.ContentLength;
-                var contlen = bytes;
-
-                var buf1 = new byte[1024];
-
-                var fs =
-                    new FileStream(
-                        Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar + @"px4io.bin",
-                        FileMode.Create);
-
-                lbl_status.Text = Strings.DownloadingFromInternet;
-
-                Refresh();
-                Application.DoEvents();
-
-                dataStream.ReadTimeout = 30000;
-
-                while (dataStream.CanRead)
-                {
-                    try
-                    {
-                        progress.Value = 50;
-                            // (int)(((float)(response.ContentLength - bytes) / (float)response.ContentLength) * 100);
-                        progress.Refresh();
-                    }
-                    catch
-                    {
-                    }
-                    var len = dataStream.Read(buf1, 0, 1024);
-                    if (len == 0)
-                        break;
-                    bytes -= len;
-                    fs.Write(buf1, 0, len);
-                }
-
-                fs.Close();
-                dataStream.Close();
-                response.Close();
-
-                lbl_status.Text = "Done";
-                Application.DoEvents();
-            }
-            catch
-            {
-                CustomMessageBox.Show("Error receiving firmware", Strings.ERROR);
-                return;
-            }
-
-            using (var sfd = new SaveFileDialog())
-            {
-                sfd.FileName = "px4io.bin";
-                if (sfd.ShowDialog() == DialogResult.OK)
-                {
-                    if (sfd.FileName != "")
-                    {
-                        if (File.Exists(sfd.FileName))
-                            File.Delete(sfd.FileName);
-
-                        File.Copy(
-                            Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar +
-                            @"px4io.bin", sfd.FileName);
-                    }
-                }
-            }
-
-            progress.Value = 100;
-
-            CustomMessageBox.Show(
-                "Please eject the microsd card, place into the px4, hold down the ioboard safety button, power on,\nand wait 60 seconds for the automated upgrade to take place.\nA upgrade status is created on your microsd card.");
-        }
+        
 
         private void lbl_dlfw_Click(object sender, EventArgs e)
         {
             try
             {
-                Process.Start("http://firmware.diydrones.com/");
+                Process.Start("http://firmware.ardupilot.org/");
             }
             catch
             {
-                CustomMessageBox.Show("Can not open url http://firmware.diydrones.com/", Strings.ERROR);
+                CustomMessageBox.Show("Can not open url http://firmware.ardupilot.org/", Strings.ERROR);
             }
         }
 
@@ -471,7 +393,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
                 if (MainV2.comPort.BaseStream.IsOpen)
                 {
-                    MainV2.comPort.doReboot(true);
+                    MainV2.comPort.doReboot(true, false);
                     CustomMessageBox.Show("Please ignore the unplug and plug back in when uploading flight firmware.");
                 }
                 else
@@ -489,11 +411,23 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             try
             {
-                Process.Start(@"http://copter.ardupilot.com/wiki/motor-setup/");
+                Process.Start(@"http://copter.ardupilot.com/wiki/connect-escs-and-motors/#motor_order_diagrams");
             }
             catch
             {
-                CustomMessageBox.Show("http://copter.ardupilot.com/wiki/motor-setup/", Strings.ERROR);
+                CustomMessageBox.Show("http://copter.ardupilot.com/wiki/connect-escs-and-motors/#motor_order_diagrams", Strings.ERROR);
+            }
+        }
+
+        private void picturebox_ph2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Process.Start(@"http://www.proficnc.com/?utm_source=missionplanner&utm_medium=click&utm_campaign=mission");
+            }
+            catch
+            {
+                CustomMessageBox.Show("http://www.proficnc.com/?utm_source=missionplanner&utm_medium=click&utm_campaign=mission", Strings.ERROR);
             }
         }
     }

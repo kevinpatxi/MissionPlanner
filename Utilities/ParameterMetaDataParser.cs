@@ -14,32 +14,45 @@ namespace MissionPlanner.Utilities
 {
     public static class ParameterMetaDataParser
     {
-        private static readonly Regex _paramMetaRegex = new Regex(String.Format("{0}(?<MetaKey>[^:\\s]+):(?<MetaValue>.+)", ParameterMetaDataConstants.ParamDelimeter));
+        private static readonly Regex _paramMetaRegex =
+            new Regex(String.Format("{0}(?<MetaKey>[^:\\s]+):(?<MetaValue>.+)",
+                ParameterMetaDataConstants.ParamDelimeter));
+
         private static readonly Regex _parentDirectoryRegex = new Regex("(?<ParentDirectory>[../]*)(?<Path>.+)");
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static readonly ILog log =
+            LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static Dictionary<string, string> cache = new Dictionary<string, string>();
 
         /// <summary>
         /// retrived parameter info from the net
         /// </summary>
-        /// <param name="ap">xml name for arduplane</param>
-        /// <param name="ac">xml name for arducopter</param>
-        /// <param name="ar">xml name for ardurover</param>
-        public static void GetParameterInformation()
+        public static void GetParameterInformation(string urls = null,string file = null)
         {
             string parameterLocationsString = ConfigurationManager.AppSettings["ParameterLocations"];
 
             if (MissionPlanner.Utilities.Update.dobeta)
+            {
                 parameterLocationsString = ConfigurationManager.AppSettings["ParameterLocationsBleeding"];
+                log.Info("Using Bleeding param gen urls");
+            }
+
+            if (urls != null)
+                parameterLocationsString = urls;
+
+            string XMLFileName = String.Format("{0}{1}", Settings.GetUserDataDirectory(),
+                ConfigurationManager.AppSettings["ParameterMetaDataXMLFileName"]);
+
+            if (file != null)
+                XMLFileName = String.Format("{0}{1}", Settings.GetUserDataDirectory(), file);
 
             if (!String.IsNullOrEmpty(parameterLocationsString))
             {
                 var parameterLocations = parameterLocationsString.Split(';').ToList();
                 parameterLocations.RemoveAll(String.IsNullOrEmpty);
 
-                string sStartupPath = Application.StartupPath;
-                using (var objXmlTextWriter = new XmlTextWriter(String.Format("{0}{1}{2}", Application.StartupPath, Path.DirectorySeparatorChar, ConfigurationManager.AppSettings["ParameterMetaDataXMLFileName"]), null))
+                using (var objXmlTextWriter = new XmlTextWriter(XMLFileName, null))
                 {
                     objXmlTextWriter.Formatting = Formatting.Indented;
                     objXmlTextWriter.WriteStartDocument();
@@ -62,6 +75,10 @@ namespace MissionPlanner.Utilities
                         {
                             element = MainV2.Firmwares.ArduRover.ToString();
                         }
+                        else if (parameterLocation.ToLower().Contains("ardusub"))
+                        {
+                            element = MainV2.Firmwares.ArduSub.ToString();
+                        }
                         else if (parameterLocation.ToLower().Contains("tracker"))
                         {
                             element = MainV2.Firmwares.ArduTracker.ToString();
@@ -78,8 +95,8 @@ namespace MissionPlanner.Utilities
 
                         // Write the start element for this parameter location
                         objXmlTextWriter.WriteStartElement(element);
-                        ParseGroupInformation(dataFromAddress, objXmlTextWriter, parameterLocation);
-                        ParseParameterInformation(dataFromAddress, objXmlTextWriter);
+                        ParseParameterInformation(dataFromAddress, objXmlTextWriter, string.Empty);
+                        ParseGroupInformation(dataFromAddress, objXmlTextWriter, parameterLocation.Trim());
 
                         // Write the end element for this parameter location
                         objXmlTextWriter.WriteEndElement();
@@ -101,8 +118,29 @@ namespace MissionPlanner.Utilities
         /// <param name="fileContents">The file contents.</param>
         /// <param name="objXmlTextWriter">The obj XML text writer.</param>
         /// <param name="parameterLocation">The parameter location.</param>
-        private static void ParseGroupInformation(string fileContents, XmlTextWriter objXmlTextWriter, string parameterLocation)
+        private static void ParseGroupInformation(string fileContents, XmlTextWriter objXmlTextWriter,
+            string parameterLocation, string parameterPrefix ="")
         {
+            var NestedGroups = Regex.Match(fileContents, ParameterMetaDataConstants.NestedGroup);
+
+            if (NestedGroups != null && NestedGroups.Success)
+            {
+                Uri uri = new Uri(parameterLocation);
+
+                var currentfn = uri.Segments[uri.Segments.Length - 1];
+
+                var newfn = NestedGroups.Groups[1].ToString() + Path.GetExtension(currentfn);
+
+                if (currentfn != newfn)
+                {
+                    var newPath = parameterLocation.Replace(currentfn, newfn);
+                    var dataFromAddress = ReadDataFromAddress(newPath);
+                    log.Info("Nested Group " + NestedGroups.Groups[1]);
+                    ParseParameterInformation(dataFromAddress, objXmlTextWriter, parameterPrefix);
+                    ParseGroupInformation(dataFromAddress, objXmlTextWriter, newPath, parameterPrefix);
+                }
+            }
+
             var parsedInformation = ParseKeyValuePairs(fileContents, ParameterMetaDataConstants.Group);
             if (parsedInformation != null && parsedInformation.Count > 0)
             {
@@ -115,44 +153,33 @@ namespace MissionPlanner.Utilities
                     {
                         // Find the @Path key
                         node.Value
-                           .Where(meta => meta.Key == ParameterMetaDataConstants.Path)
+                            .Where(meta => meta.Key == ParameterMetaDataConstants.Path)
                             // We might have multiple paths to inspect, so break them out by the delimeter
-                           .ForEach(path => path.Value.Split(new[] { ParameterMetaDataConstants.PathDelimeter }, StringSplitOptions.None)
-                              .ForEach(separatedPath =>
-                              {
-                                  separatedPath = separatedPath.Trim();
-                                  log.Info("Process " + node.Key + " : " + separatedPath);
-                                  // Match based on the regex defined at the top of this class
-                                  Match pathMatch = _parentDirectoryRegex.Match(separatedPath);
-                                  if (pathMatch.Success && pathMatch.Groups["Path"] != null && !String.IsNullOrEmpty(pathMatch.Groups["Path"].Value))
-                                  {
-                                      if (pathMatch.Groups["ParentDirectory"] != null && !String.IsNullOrEmpty(pathMatch.Groups["ParentDirectory"].Value))
-                                      {
-                                          // How many directories from the original path do we have to move
-                                          int numberOfParentDirectoryMoves = pathMatch.Groups["ParentDirectory"].Value.Split(new string[] { "../" }, StringSplitOptions.None).Count();
+                            .ForEach(
+                                path =>
+                                    path.Value.Split(new[] {ParameterMetaDataConstants.PathDelimeter},
+                                        StringSplitOptions.None)
+                                        .ForEach(separatedPath =>
+                                        {
+                                            log.Info("Process " + parameterPrefix + node.Key + " : " + separatedPath);
+                                            Uri newUri = new Uri(new Uri(parameterLocation), separatedPath.Trim());
 
-                                          // We need to remove the http:// or https:// prefix to build the new URL properly
-                                          string httpTest = parameterLocation.Substring(0, 7);
-                                          int trimHttpPrefixIdx = httpTest == "http://" ? 7 : 8;
+                                            var newPath = newUri.AbsoluteUri;
 
-                                          // Get the parts of the original URL
-                                          var parameterLocationParts = parameterLocation.Substring(trimHttpPrefixIdx, parameterLocation.Length - trimHttpPrefixIdx).Split(new char[] { '/' });
+                                            if (newPath == parameterLocation)
+                                                return;
 
-                                          // Rebuild the new url taking into account the numberOfParentDirectoryMoves
-                                          string urlAfterParentDirectory = string.Empty;
-                                          for (int i = 0; i < parameterLocationParts.Length && i < parameterLocationParts.Length - numberOfParentDirectoryMoves; i++)
-                                          {
-                                              urlAfterParentDirectory += parameterLocationParts[i] + "/";
-                                          }
+                                            var dataFromAddress = ReadDataFromAddress(newPath);
 
-                                          // This is the URL of the file we need to parse for comments
-                                          string newPath = String.Format("{0}{1}{2}", parameterLocation.Substring(0, trimHttpPrefixIdx), urlAfterParentDirectory, pathMatch.Groups["Path"].Value);
+                                            if (dataFromAddress == "")
+                                                return;
 
-                                          // Parse the param info from the newly constructed URL
-                                          ParseParameterInformation(ReadDataFromAddress(newPath), objXmlTextWriter, node.Key);
-                                      }
-                                  }
-                              }));
+                                            // Parse the param info from the newly constructed URL
+                                            ParseParameterInformation(dataFromAddress,
+                                                objXmlTextWriter, parameterPrefix+node.Key, newPath);
+
+                                            ParseGroupInformation(dataFromAddress, objXmlTextWriter, newPath, parameterPrefix + node.Key);
+                                        }));
                     }
                 });
             }
@@ -163,18 +190,9 @@ namespace MissionPlanner.Utilities
         /// </summary>
         /// <param name="fileContents">The file contents.</param>
         /// <param name="objXmlTextWriter">The obj XML text writer.</param>
-        private static void ParseParameterInformation(string fileContents, XmlTextWriter objXmlTextWriter)
-        {
-            ParseParameterInformation(fileContents, objXmlTextWriter, string.Empty);
-        }
-
-        /// <summary>
-        /// Parses the parameter information.
-        /// </summary>
-        /// <param name="fileContents">The file contents.</param>
-        /// <param name="objXmlTextWriter">The obj XML text writer.</param>
         /// <param name="parameterPrefix">The parameter prefix.</param>
-        private static void ParseParameterInformation(string fileContents, XmlTextWriter objXmlTextWriter, string parameterPrefix)
+        private static void ParseParameterInformation(string fileContents, XmlTextWriter objXmlTextWriter,
+            string parameterPrefix, string url = "")
         {
             var parsedInformation = ParseKeyValuePairs(fileContents, ParameterMetaDataConstants.Param);
             if (parsedInformation != null && parsedInformation.Count > 0)
@@ -183,7 +201,7 @@ namespace MissionPlanner.Utilities
                 {
                     parameterPrefix = parameterPrefix.Replace('(', '_');
                     parameterPrefix = parameterPrefix.Replace(')', '_');
-                    objXmlTextWriter.WriteStartElement(String.Format("{0}{1}", parameterPrefix, node.Key));
+                    objXmlTextWriter.WriteStartElement(String.Format("{0}{1}", parameterPrefix.Replace(" ", "_"), node.Key.Replace(" ","_")));
                     if (node.Value != null && node.Value.Count > 0)
                     {
                         node.Value.ForEach(meta =>
@@ -205,7 +223,8 @@ namespace MissionPlanner.Utilities
         /// <param name="fileContents">The file contents.</param>
         /// <param name="nodeKey">The node key.</param>
         /// <returns></returns>
-        private static Dictionary<string, Dictionary<string, string>> ParseKeyValuePairs(string fileContents, string nodeKey)
+        private static Dictionary<string, Dictionary<string, string>> ParseKeyValuePairs(string fileContents,
+            string nodeKey)
         {
             var returnDict = new Dictionary<string, Dictionary<string, string>>();
 
@@ -225,19 +244,21 @@ namespace MissionPlanner.Utilities
                     if (!String.IsNullOrEmpty(subStringToSearch))
                     {
                         var metaIndicies = new List<int>();
-                        GetIndexOfMarkers(ref metaIndicies, subStringToSearch, ParameterMetaDataConstants.ParamDelimeter, 0);
+                        GetIndexOfMarkers(ref metaIndicies, subStringToSearch, ParameterMetaDataConstants.ParamDelimeter,
+                            0);
 
                         if (metaIndicies.Count > 0)
                         {
                             // This meta param key
-                            var paramNameKey = subStringToSearch.Substring(metaIndicies[0], (metaIndicies[1] - metaIndicies[0]));
+                            var paramNameKey = subStringToSearch.Substring(metaIndicies[0],
+                                (metaIndicies[1] - metaIndicies[0]));
 
                             // Match based on the regex defined at the top of this class
                             Match paramNameKeyMatch = _paramMetaRegex.Match(paramNameKey);
 
                             if (paramNameKeyMatch.Success && paramNameKeyMatch.Groups["MetaKey"].Value == nodeKey)
                             {
-                                string key = paramNameKeyMatch.Groups["MetaValue"].Value.Trim(new char[] { ' ' });
+                                string key = paramNameKeyMatch.Groups["MetaValue"].Value.Trim(new char[] {' '});
                                 var metaDict = new Dictionary<string, string>();
                                 if (!returnDict.ContainsKey(key))
                                 {
@@ -246,10 +267,13 @@ namespace MissionPlanner.Utilities
                                     {
                                         // This is the end index for a substring to search for parameter attributes
                                         // If we are on the last index in our collection, we will search to the end of the file
-                                        var stopMetaIdx = (x == metaIndicies.Count - 1) ? subStringToSearch.Length : metaIndicies[x + 1] + 1;
+                                        var stopMetaIdx = (x == metaIndicies.Count - 1)
+                                            ? subStringToSearch.Length
+                                            : metaIndicies[x + 1] + 1;
 
                                         // This meta param string
-                                        var metaString = subStringToSearch.Substring(metaIndicies[x], (stopMetaIdx - metaIndicies[x]));
+                                        var metaString = subStringToSearch.Substring(metaIndicies[x],
+                                            (stopMetaIdx - metaIndicies[x]));
 
                                         // Match based on the regex defined at the top of this class
                                         Match metaMatch = _paramMetaRegex.Match(metaString);
@@ -257,10 +281,11 @@ namespace MissionPlanner.Utilities
                                         // Test for success
                                         if (metaMatch.Success)
                                         {
-                                            string metaKey = metaMatch.Groups["MetaKey"].Value.Trim(new char[] { ' ' });
+                                            string metaKey = metaMatch.Groups["MetaKey"].Value.Trim(new char[] {' '});
                                             if (!metaDict.ContainsKey(metaKey))
                                             {
-                                                metaDict.Add(metaKey, metaMatch.Groups["MetaValue"].Value.Trim(new char[] { ' ' }));
+                                                metaDict.Add(metaKey,
+                                                    metaMatch.Groups["MetaValue"].Value.Trim(new char[] {' '}));
                                             }
                                         }
                                     }
@@ -349,7 +374,7 @@ namespace MissionPlanner.Utilities
                 using (var response = request.GetResponse())
                 {
                     // Display the status.
-                    log.Info(((HttpWebResponse)response).StatusDescription);
+                    log.Info(((HttpWebResponse) response).StatusDescription);
 
                     // Get the stream containing content returned by the server.
                     using (var dataStream = response.GetResponseStream())

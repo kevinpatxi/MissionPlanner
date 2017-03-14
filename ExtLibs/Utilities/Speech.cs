@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Speech.Synthesis;
+using System.Text.RegularExpressions;
 using log4net;
 
 namespace MissionPlanner.Utilities
@@ -18,17 +19,25 @@ namespace MissionPlanner.Utilities
 
         bool MONO = false;
 
-        public SynthesizerState State
+        public bool IsReady 
         {
-            get
-            {
+            get {
                 if (MONO)
                 {
-                    return _state;
+                    return _state == SynthesizerState.Ready;
                 }
                 else
                 {
-                    return _speechwindows.State;
+                    try
+                    {
+                        if (_speechwindows != null)
+                            return _speechwindows.State == SynthesizerState.Ready;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                    return false;
                 }
             }
         }
@@ -55,7 +64,12 @@ namespace MissionPlanner.Utilities
             if (text == null)
                 return;
 
-            text = text.Replace("PreArm", "Pre Arm");
+            text = Regex.Replace(text, @"\bPreArm\b", "Pre Arm", RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\bdist\b", "distance", RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\bNAV\b", "Navigation", RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\b([0-9]+)m\b", "$1 meters", RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\b([0-9]+)ft\b", "$1 feet", RegexOptions.IgnoreCase);
+            text = Regex.Replace(text, @"\b([0-9]+)\bbaud\b", "$1 baudrate", RegexOptions.IgnoreCase);
 
             if (MONO)
             {
@@ -87,7 +101,8 @@ namespace MissionPlanner.Utilities
             }
             else
             {
-                _speechwindows.SpeakAsync(text);
+                if (_speechwindows != null)
+                    _speechwindows.SpeakAsync(text);
             }
 
             log.Info("TTS: say " + text);
@@ -115,9 +130,14 @@ namespace MissionPlanner.Utilities
             {
                 try
                 {
-                    _speechwindows.SpeakAsyncCancelAll();
+                    if (_speechwindows!= null)
+                        _speechwindows.SpeakAsyncCancelAll();
                 }
-                catch { } // System.PlatformNotSupportedException:
+                catch (System.PlatformNotSupportedException)
+                {
+                    _speechwindows = null;
+                }
+                catch { }
             }
         }
 

@@ -86,15 +86,18 @@
             this.BUT_themecustom = new MissionPlanner.Controls.MyButton();
             this.CHK_speecharmdisarm = new System.Windows.Forms.CheckBox();
             this.BUT_Vario = new MissionPlanner.Controls.MyButton();
-            this.label5 = new System.Windows.Forms.Label();
             this.chk_analytics = new System.Windows.Forms.CheckBox();
             this.CHK_beta = new System.Windows.Forms.CheckBox();
             this.CHK_Password = new System.Windows.Forms.CheckBox();
             this.CHK_speechlowspeed = new System.Windows.Forms.CheckBox();
-            this.CHK_advancedview = new System.Windows.Forms.CheckBox();
             this.CHK_showairports = new System.Windows.Forms.CheckBox();
             this.chk_ADSB = new System.Windows.Forms.CheckBox();
             this.chk_tfr = new System.Windows.Forms.CheckBox();
+            this.chk_temp = new System.Windows.Forms.CheckBox();
+            this.chk_norcreceiver = new System.Windows.Forms.CheckBox();
+            this.but_AAsignin = new MissionPlanner.Controls.MyButton();
+            this.CMB_Layout = new System.Windows.Forms.ComboBox();
+            this.label5 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.NUM_tracklength)).BeginInit();
             this.SuspendLayout();
             // 
@@ -549,11 +552,6 @@
             this.BUT_Vario.UseVisualStyleBackColor = true;
             this.BUT_Vario.Click += new System.EventHandler(this.BUT_Vario_Click);
             // 
-            // label5
-            // 
-            resources.ApplyResources(this.label5, "label5");
-            this.label5.Name = "label5";
-            // 
             // chk_analytics
             // 
             resources.ApplyResources(this.chk_analytics, "chk_analytics");
@@ -582,13 +580,6 @@
             this.CHK_speechlowspeed.UseVisualStyleBackColor = true;
             this.CHK_speechlowspeed.CheckedChanged += new System.EventHandler(this.CHK_speechlowspeed_CheckedChanged);
             // 
-            // CHK_advancedview
-            // 
-            resources.ApplyResources(this.CHK_advancedview, "CHK_advancedview");
-            this.CHK_advancedview.Name = "CHK_advancedview";
-            this.CHK_advancedview.UseVisualStyleBackColor = true;
-            this.CHK_advancedview.CheckedChanged += new System.EventHandler(this.CHK_advancedview_CheckedChanged);
-            // 
             // CHK_showairports
             // 
             resources.ApplyResources(this.CHK_showairports, "CHK_showairports");
@@ -614,19 +605,55 @@
             this.chk_tfr.UseVisualStyleBackColor = true;
             this.chk_tfr.CheckedChanged += new System.EventHandler(this.chk_tfr_CheckedChanged);
             // 
+            // chk_temp
+            // 
+            resources.ApplyResources(this.chk_temp, "chk_temp");
+            this.chk_temp.Name = "chk_temp";
+            this.chk_temp.UseVisualStyleBackColor = true;
+            this.chk_temp.CheckedChanged += new System.EventHandler(this.chk_temp_CheckedChanged);
+            // 
+            // chk_norcreceiver
+            // 
+            resources.ApplyResources(this.chk_norcreceiver, "chk_norcreceiver");
+            this.chk_norcreceiver.Name = "chk_norcreceiver";
+            this.chk_norcreceiver.UseVisualStyleBackColor = true;
+            this.chk_norcreceiver.CheckedChanged += new System.EventHandler(this.chk_norcreceiver_CheckedChanged);
+            // 
+            // but_AAsignin
+            // 
+            resources.ApplyResources(this.but_AAsignin, "but_AAsignin");
+            this.but_AAsignin.Name = "but_AAsignin";
+            this.but_AAsignin.UseVisualStyleBackColor = true;
+            this.but_AAsignin.Click += new System.EventHandler(this.but_AAsignin_Click);
+            // 
+            // CMB_Layout
+            // 
+            this.CMB_Layout.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CMB_Layout.FormattingEnabled = true;
+            resources.ApplyResources(this.CMB_Layout, "CMB_Layout");
+            this.CMB_Layout.Name = "CMB_Layout";
+            this.CMB_Layout.SelectedIndexChanged += new System.EventHandler(this.CMB_Layout_SelectedIndexChanged);
+            // 
+            // label5
+            // 
+            resources.ApplyResources(this.label5, "label5");
+            this.label5.Name = "label5";
+            // 
             // ConfigPlanner
             // 
-            resources.ApplyResources(this, "$this");
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.CMB_Layout);
+            this.Controls.Add(this.but_AAsignin);
+            this.Controls.Add(this.chk_norcreceiver);
+            this.Controls.Add(this.chk_temp);
             this.Controls.Add(this.chk_tfr);
             this.Controls.Add(this.chk_ADSB);
             this.Controls.Add(this.CHK_showairports);
-            this.Controls.Add(this.CHK_advancedview);
             this.Controls.Add(this.CHK_speechlowspeed);
             this.Controls.Add(this.CHK_Password);
             this.Controls.Add(this.CHK_beta);
             this.Controls.Add(this.chk_analytics);
-            this.Controls.Add(this.label5);
             this.Controls.Add(this.BUT_Vario);
             this.Controls.Add(this.CHK_speecharmdisarm);
             this.Controls.Add(this.BUT_themecustom);
@@ -685,6 +712,7 @@
             this.Controls.Add(this.BUT_videostop);
             this.Controls.Add(this.BUT_videostart);
             this.Name = "ConfigPlanner";
+            resources.ApplyResources(this, "$this");
             this.Load += new System.EventHandler(this.ConfigPlanner_Load);
             ((System.ComponentModel.ISupportInitialize)(this.NUM_tracklength)).EndInit();
             this.ResumeLayout(false);
@@ -751,14 +779,17 @@
         private Controls.MyButton BUT_themecustom;
         private System.Windows.Forms.CheckBox CHK_speecharmdisarm;
         private Controls.MyButton BUT_Vario;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.CheckBox chk_analytics;
         private System.Windows.Forms.CheckBox CHK_beta;
         private System.Windows.Forms.CheckBox CHK_Password;
         private System.Windows.Forms.CheckBox CHK_speechlowspeed;
-        private System.Windows.Forms.CheckBox CHK_advancedview;
         private System.Windows.Forms.CheckBox CHK_showairports;
         private System.Windows.Forms.CheckBox chk_ADSB;
         private System.Windows.Forms.CheckBox chk_tfr;
+        private System.Windows.Forms.CheckBox chk_temp;
+        private System.Windows.Forms.CheckBox chk_norcreceiver;
+        private Controls.MyButton but_AAsignin;
+        public System.Windows.Forms.ComboBox CMB_Layout;
+        private System.Windows.Forms.Label label5;
     }
 }

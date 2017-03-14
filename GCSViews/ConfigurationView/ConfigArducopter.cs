@@ -59,33 +59,47 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
             HLD_LAT_P.setup(0, 0, 1, 0.001f, new[] {"HLD_LAT_P", "POS_XY_P"}, MainV2.comPort.MAV.param);
             LOITER_LAT_D.setup(0, 0, 1, 0.001f, "LOITER_LAT_D", MainV2.comPort.MAV.param);
-            LOITER_LAT_I.setup(0, 0, 1, 0.001f, "LOITER_LAT_I", MainV2.comPort.MAV.param);
-            LOITER_LAT_IMAX.setup(0, 0, 10, 0.1f, "LOITER_LAT_IMAX", MainV2.comPort.MAV.param);
-            LOITER_LAT_P.setup(0, 0, 1, 0.001f, "LOITER_LAT_P", MainV2.comPort.MAV.param);
-            RATE_PIT_FF.setup(0, 0, 1, 0.001f, "RATE_PIT_FF", MainV2.comPort.MAV.param);
-            RATE_PIT_D.setup(0, 0, 1, 0.001f, "RATE_PIT_D", MainV2.comPort.MAV.param);
-            RATE_PIT_I.setup(0, 0, 1, 0.001f, "RATE_PIT_I", MainV2.comPort.MAV.param);
-            RATE_PIT_IMAX.setup(0, 0, 10, 0.1f, "RATE_PIT_IMAX", MainV2.comPort.MAV.param);
-            RATE_PIT_P.setup(0, 0, 1, 0.001f, "RATE_PIT_P", MainV2.comPort.MAV.param);
-            RATE_RLL_D.setup(0, 0, 1, 0.001f, "RATE_RLL_D", MainV2.comPort.MAV.param);
-            RATE_RLL_I.setup(0, 0, 1, 0.001f, "RATE_RLL_I", MainV2.comPort.MAV.param);
-            RATE_RLL_IMAX.setup(0, 0, 10, 0.1f, "RATE_RLL_IMAX", MainV2.comPort.MAV.param);
-            RATE_RLL_P.setup(0, 0, 1, 0.001f, "RATE_RLL_P", MainV2.comPort.MAV.param);
-            RATE_RLL_FF.setup(0, 0, 1, 0.001f, "RATE_RLL_FF", MainV2.comPort.MAV.param);
-            RATE_YAW_D.setup(0, 0, 1, 0.001f, "RATE_YAW_D", MainV2.comPort.MAV.param);
-            RATE_YAW_FF.setup(0, 0, 1, 0.001f, "RATE_YAW_FF", MainV2.comPort.MAV.param);
-            RATE_YAW_I.setup(0, 0, 1, 0.001f, "RATE_YAW_I", MainV2.comPort.MAV.param);
-            RATE_YAW_IMAX.setup(0, 0, 10, 0.1f, "RATE_YAW_IMAX", MainV2.comPort.MAV.param);
-            RATE_YAW_P.setup(0, 0, 1, 0.001f, "RATE_YAW_P", MainV2.comPort.MAV.param);
-            STB_PIT_P.setup(0, 0, 1, 0.001f, "STB_PIT_P", MainV2.comPort.MAV.param);
-            STB_RLL_P.setup(0, 0, 1, 0.001f, "STB_RLL_P", MainV2.comPort.MAV.param);
-            STB_YAW_P.setup(0, 0, 1, 0.001f, "STB_YAW_P", MainV2.comPort.MAV.param);
+            LOITER_LAT_I.setup(0, 0, 1, 0.001f, new[] {"LOITER_LAT_I", "VEL_XY_I"}, MainV2.comPort.MAV.param);
+            LOITER_LAT_IMAX.setup(0, 0, 10, 1f, new[] {"LOITER_LAT_IMAX", "VEL_XY_IMAX"}, MainV2.comPort.MAV.param);
+            LOITER_LAT_P.setup(0, 0, 1, 0.001f, new[] {"LOITER_LAT_P", "VEL_XY_P"}, MainV2.comPort.MAV.param);
+
+            RATE_PIT_D.setup(0, 0, 1, 0.001f, new[] {"RATE_PIT_D", "ATC_RAT_PIT_D"}, MainV2.comPort.MAV.param);
+            RATE_PIT_I.setup(0, 0, 1, 0.001f, new[] {"RATE_PIT_I", "ATC_RAT_PIT_I"}, MainV2.comPort.MAV.param);
+            if (MainV2.comPort.MAV.param.ContainsKey("ATC_RAT_PIT_IMAX")) // 3.4 changes scaling
+                RATE_PIT_IMAX.setup(0, 0, 1, 1f, new[] {"ATC_RAT_PIT_IMAX"}, MainV2.comPort.MAV.param);
+            else
+                RATE_PIT_IMAX.setup(0, 0, 10, 1f, new[] {"RATE_PIT_IMAX"}, MainV2.comPort.MAV.param);
+            RATE_PIT_P.setup(0, 0, 1, 0.001f, new[] {"RATE_PIT_P", "ATC_RAT_PIT_P"}, MainV2.comPort.MAV.param);
+            RATE_PIT_FILT.setup(0, 0, 1, 0.001f, new[] { "RATE_PIT_FILT", "ATC_RAT_PIT_FILT" }, MainV2.comPort.MAV.param);
+
+            RATE_RLL_D.setup(0, 0, 1, 0.001f, new[] {"RATE_RLL_D", "ATC_RAT_RLL_D"}, MainV2.comPort.MAV.param);
+            RATE_RLL_I.setup(0, 0, 1, 0.001f, new[] {"RATE_RLL_I", "ATC_RAT_RLL_I"}, MainV2.comPort.MAV.param);
+            if (MainV2.comPort.MAV.param.ContainsKey("ATC_RAT_RLL_IMAX")) // 3.4 changes scaling
+                RATE_RLL_IMAX.setup(0, 0, 1, 1f, new[] {"ATC_RAT_RLL_IMAX"}, MainV2.comPort.MAV.param);
+            else
+                RATE_RLL_IMAX.setup(0, 0, 10, 1f, new[] {"RATE_RLL_IMAX"}, MainV2.comPort.MAV.param);
+            RATE_RLL_P.setup(0, 0, 1, 0.001f, new[] {"RATE_RLL_P", "ATC_RAT_RLL_P"}, MainV2.comPort.MAV.param);
+            RATE_RLL_FILT.setup(0, 0, 1, 0.001f, new[] { "RATE_RLL_FILT", "ATC_RAT_RLL_FILT" }, MainV2.comPort.MAV.param);
+
+            RATE_YAW_D.setup(0, 0, 1, 0.001f, new[] {"RATE_YAW_D", "ATC_RAT_YAW_D"}, MainV2.comPort.MAV.param);
+            RATE_YAW_I.setup(0, 0, 1, 0.001f, new[] {"RATE_YAW_I", "ATC_RAT_YAW_I"}, MainV2.comPort.MAV.param);
+            if (MainV2.comPort.MAV.param.ContainsKey("ATC_RAT_YAW_IMAX")) // 3.4 changes scaling
+                RATE_YAW_IMAX.setup(0, 0, 1, 1f, new[] {"ATC_RAT_YAW_IMAX"}, MainV2.comPort.MAV.param);
+            else
+                RATE_YAW_IMAX.setup(0, 0, 10, 1f, new[] {"RATE_YAW_IMAX"}, MainV2.comPort.MAV.param);
+            RATE_YAW_P.setup(0, 0, 1, 0.001f, new[] {"RATE_YAW_P", "ATC_RAT_YAW_P"}, MainV2.comPort.MAV.param);
+            RATE_YAW_FILT.setup(0, 0, 1, 0.001f, new[] { "RATE_YAW_FILT", "ATC_RAT_YAW_FILT" }, MainV2.comPort.MAV.param);
+
+            STB_PIT_P.setup(0, 0, 1, 0.001f, new[] {"STB_PIT_P", "ATC_ANG_PIT_P"}, MainV2.comPort.MAV.param);
+            STB_RLL_P.setup(0, 0, 1, 0.001f, new[] {"STB_RLL_P", "ATC_ANG_RLL_P"}, MainV2.comPort.MAV.param);
+            STB_YAW_P.setup(0, 0, 1, 0.001f, new[] {"STB_YAW_P", "ATC_ANG_YAW_P"}, MainV2.comPort.MAV.param);
+
             THR_ACCEL_D.setup(0, 0, 1, 0.001f, new[] {"THR_ACCEL_D", "ACCEL_Z_D"}, MainV2.comPort.MAV.param);
             THR_ACCEL_I.setup(0, 0, 1, 0.001f, new[] {"THR_ACCEL_I", "ACCEL_Z_I"}, MainV2.comPort.MAV.param);
-            THR_ACCEL_IMAX.setup(0, 0, 10, 0.1f, new[] {"THR_ACCEL_IMAX", "ACCEL_Z_IMAX"}, MainV2.comPort.MAV.param);
+            THR_ACCEL_IMAX.setup(0, 0, 10, 1f, new[] {"THR_ACCEL_IMAX", "ACCEL_Z_IMAX"}, MainV2.comPort.MAV.param);
             THR_ACCEL_P.setup(0, 0, 1, 0.001f, new[] {"THR_ACCEL_P", "ACCEL_Z_P"}, MainV2.comPort.MAV.param);
             THR_ALT_P.setup(0, 0, 1, 0.001f, new[] {"THR_ALT_P", "POS_Z_P"}, MainV2.comPort.MAV.param);
-            THR_RATE_P.setup(0, 0, 1, 0.001f, "THR_RATE_P", MainV2.comPort.MAV.param);
+            THR_RATE_P.setup(0, 0, 1, 0.001f, new[] {"THR_RATE_P", "VEL_Z_P"}, MainV2.comPort.MAV.param);
             WPNAV_LOIT_SPEED.setup(0, 0, 1, 0.001f, "WPNAV_LOIT_SPEED", MainV2.comPort.MAV.param);
             WPNAV_RADIUS.setup(0, 0, 1, 0.001f, "WPNAV_RADIUS", MainV2.comPort.MAV.param);
             WPNAV_SPEED.setup(0, 0, 1, 0.001f, "WPNAV_SPEED", MainV2.comPort.MAV.param);
@@ -102,6 +116,28 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (MainV2.comPort.MAV.param["H_SWASH_TYPE"] != null)
             {
                 CHK_lockrollpitch.Checked = false;
+            }
+
+            // add tooltips to all controls
+            foreach (Control control1 in Controls)
+            {
+                foreach (Control control2 in control1.Controls)
+                {
+                    if (control2 is MavlinkNumericUpDown)
+                    {
+                        var ParamName = ((MavlinkNumericUpDown)control2).ParamName;
+                        toolTip1.SetToolTip(control2,
+                            ParameterMetaDataRepository.GetParameterMetaData(ParamName,
+                                ParameterMetaDataConstants.Description, MainV2.comPort.MAV.cs.firmware.ToString()));
+                    }
+                    if (control2 is MavlinkComboBox)
+                    {
+                        var ParamName = ((MavlinkComboBox)control2).ParamName;
+                        toolTip1.SetToolTip(control2,
+                            ParameterMetaDataRepository.GetParameterMetaData(ParamName,
+                                ParameterMetaDataConstants.Description, MainV2.comPort.MAV.cs.firmware.ToString()));
+                    }
+                }
             }
 
             startup = false;
@@ -266,7 +302,23 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                         if (
                             CustomMessageBox.Show(value + " has more than doubled the last input. Are you sure?",
                                 "Large Value", MessageBoxButtons.YesNo) == DialogResult.No)
+                        {
+                            try
+                            {
+                                // set control as well
+                                var textControls = Controls.Find(value, true);
+                                if (textControls.Length > 0)
+                                {
+                                    // restore old value
+                                    textControls[0].Text = MainV2.comPort.MAV.param[value].Value.ToString();
+                                    textControls[0].BackColor = Color.FromArgb(0x43, 0x44, 0x45);
+                                }
+                            }
+                            catch
+                            {
+                            }
                             return;
+                        }
 
                     MainV2.comPort.setParam(value, (float) changes[value]);
 

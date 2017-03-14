@@ -31,16 +31,47 @@ public partial class MAVLink
         /// </summary>
         public MAV_PARAM_TYPE Type { get; set; }
 
-        public byte uint8_value { get { return data[0]; } }
-        public sbyte int8_value { get { return (sbyte)data[0]; } }
-        public ushort uint16_value { get { return BitConverter.ToUInt16(data, 0); } }
-        public short int16_value { get { return BitConverter.ToInt16(data, 0); } }
-        public UInt32 uint32_value { get { return BitConverter.ToUInt32(data, 0); } }
-        public Int32 int32_value { get { return BitConverter.ToInt32(data, 0); } }
+        private MAV_PARAM_TYPE _typeap = MAV_PARAM_TYPE.ENUM_END;
+        public MAV_PARAM_TYPE TypeAP {
+            get 
+            { 
+                if (_typeap != MAV_PARAM_TYPE.ENUM_END) 
+                    return _typeap;
+                return Type;
+            }
+            set
+            {
+                _typeap = value;
+                
+            }
+        }
+
+        byte uint8_value { get { return data[0]; } }
+        sbyte int8_value { get { return (sbyte)data[0]; } }
+        ushort uint16_value { get { return BitConverter.ToUInt16(data, 0); } }
+        short int16_value { get { return BitConverter.ToInt16(data, 0); } }
+        UInt32 uint32_value { get { return BitConverter.ToUInt32(data, 0); } }
+        Int32 int32_value { get { return BitConverter.ToInt32(data, 0); } }
         public float float_value { get { return BitConverter.ToSingle(data, 0); } }
 
-        internal byte[] data = new byte[4];
+        byte[] _data = new byte[4];
 
+        public byte[] data
+        {
+            get { return _data; }
+            set
+            {
+                _data = value;
+                Array.Resize(ref _data, 4);
+            }
+        }
+
+        /// <summary>
+        /// used as a generic input to type the input data
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        /// <param name="type"></param>
         public MAVLinkParam(string name, double value, MAV_PARAM_TYPE type)
         {
             Name = name;
@@ -48,20 +79,19 @@ public partial class MAVLink
             Value = value;
         }
 
-        public MAVLinkParam(string name, float inputwire, MAV_PARAM_TYPE type)
+        /// <summary>
+        /// Used to set Ardupilot Params
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="inputwire"></param>
+        /// <param name="type"></param>
+        /// <param name="typeap"></param>
+        public MAVLinkParam(string name, byte[] inputwire, MAV_PARAM_TYPE type, MAV_PARAM_TYPE typeap)
         {
             Name = name;
             Type = type;
-            data = BitConverter.GetBytes(inputwire);
-            Array.Resize(ref data, 4);
-        }
-
-        public MAVLinkParam(string name, byte[] inputwire, MAV_PARAM_TYPE type)
-        {
-            Name = name;
-            Type = type;
-            data = inputwire;
-            Array.Resize(ref data, 4);
+            TypeAP = typeap;
+            Array.Copy(inputwire, _data, 4);
         }
 
         public double GetValue()
@@ -93,19 +123,19 @@ public partial class MAVLink
             {
                 case MAV_PARAM_TYPE.UINT8:
                     data = BitConverter.GetBytes((byte)input);
-                    Array.Resize(ref data, 4);
+                    Array.Resize(ref _data, 4);
                     break;
                 case MAV_PARAM_TYPE.INT8:
                     data = BitConverter.GetBytes((sbyte)input);
-                    Array.Resize(ref data, 4);
+                    Array.Resize(ref _data, 4);
                     break;
                 case MAV_PARAM_TYPE.UINT16:
                     data = BitConverter.GetBytes((ushort)input);
-                    Array.Resize(ref data, 4);
+                    Array.Resize(ref _data, 4);
                     break;
                 case MAV_PARAM_TYPE.INT16:
                     data = BitConverter.GetBytes((short)input);
-                    Array.Resize(ref data, 4);
+                    Array.Resize(ref _data, 4);
                     break;
                 case MAV_PARAM_TYPE.UINT32:
                     data = BitConverter.GetBytes((UInt32)input);
@@ -119,13 +149,50 @@ public partial class MAVLink
             }
         }
 
+        public static explicit operator byte(MAVLinkParam v)
+        {
+            return (byte)v.Value;
+        }
+
+        public static explicit operator sbyte(MAVLinkParam v)
+        {
+            return (sbyte)v.Value;
+        }
+
+        public static explicit operator short(MAVLinkParam v)
+        {
+            return (short)v.Value;
+        }
+
+        public static explicit operator ushort(MAVLinkParam v)
+        {
+            return (ushort)v.Value;
+        }
+
+        public static explicit operator int(MAVLinkParam v)
+        {
+            return (int)v.Value;
+        }
+
+        public static explicit operator uint(MAVLinkParam v)
+        {
+            return (uint)v.Value;
+        }
+
         public static explicit operator float (MAVLinkParam v)
         {
             return (float)v.Value;
         }
 
+        public static explicit operator double(MAVLinkParam v)
+        {
+            return (double)v.Value;
+        }
+
         public override string ToString()
         {
+            if (Type == MAV_PARAM_TYPE.REAL32)
+                return ((float)this).ToString();
             return Value.ToString();
         }
     }

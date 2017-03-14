@@ -15,7 +15,6 @@ namespace MissionPlanner
 {
     public partial class ConnectionOptions : Form
     {
-        static TcpListener listener;
         // Thread signal. 
         public static ManualResetEvent tcpClientConnected = new ManualResetEvent(false);
 
@@ -42,8 +41,10 @@ namespace MissionPlanner
                 MainV2.instance.doConnect(mav, CMB_serialport.Text, CMB_baudrate.Text);
 
                 MainV2.Comports.Add(mav);
+
+                MainV2._connectionControl.UpdateSysIDS();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }

@@ -10,7 +10,8 @@ using System.Net; // dns, ip address
 using System.Net.Sockets; // tcplistner
 using log4net;
 using System.IO;
-using MissionPlanner.Controls;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace MissionPlanner.Comms
 {
@@ -19,6 +20,11 @@ namespace MissionPlanner.Comms
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public TcpClient client = new TcpClient();
         IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        private Uri remoteUri;
+
+        public double lat = 0;
+        public double lng = 0;
+        public double alt = 0;
 
         int retrys = 3;
 
@@ -27,10 +33,11 @@ namespace MissionPlanner.Comms
         public int WriteBufferSize { get; set; }
         public int WriteTimeout { get; set; }
         public bool RtsEnable { get; set; }
-        public Stream BaseStream { get { return this.BaseStream; } }
+        public Stream BaseStream { get { return client.GetStream(); } }
 
         public CommsNTRIP()
         {
+            ReadTimeout = 500;
         }
 
         public void toggleDTR()
@@ -81,8 +88,7 @@ namespace MissionPlanner.Comms
 
             string url = OnSettings("NTRIP_url", "");
 
-            if (System.Windows.Forms.DialogResult.Cancel ==
-                InputBox.Show("remote host", "Enter url", ref url))
+            if (OnInputBoxShow("remote host", "Enter url (eg http://user:pass@host:port/mount)", ref url) == inputboxreturn.Cancel)
             {
                 throw new Exception("Canceled by request");
             }
@@ -90,12 +96,38 @@ namespace MissionPlanner.Comms
 
             OnSettings("NTRIP_url", url, true);
 
-            url = url.Replace("ntrip://","http://");
+            int count = url.Split('@').Length - 1;
 
-            Uri remoteUri = new Uri(url);
+            if (count > 1)
+            {
+                var regex = new Regex("@");
+                url = regex.Replace(url, "%40", 1);
+            }
 
+            url = url.Replace("ntrip://", "http://");
+
+            remoteUri = new Uri(url);
+
+            doConnect();
+        }
+
+        private byte[] TcpKeepAlive(bool On_Off, uint KeepaLiveTime, uint KeepaLiveInterval)
+        {
+            byte[] InValue = new byte[12];
+
+            Array.ConstrainedCopy(BitConverter.GetBytes(Convert.ToUInt32(On_Off)), 0, InValue, 0, 4);
+            Array.ConstrainedCopy(BitConverter.GetBytes(KeepaLiveTime), 0, InValue, 4, 4);
+            Array.ConstrainedCopy(BitConverter.GetBytes(KeepaLiveInterval), 0, InValue, 8, 4);
+
+            return InValue;
+        }
+
+        private void doConnect()
+        {
             string usernamePassword = remoteUri.UserInfo;
-            string auth = "Authorization: Basic " + Convert.ToBase64String(new ASCIIEncoding().GetBytes(usernamePassword))+"\r\n";
+            string userpass2 = Uri.UnescapeDataString(usernamePassword);
+            string auth = "Authorization: Basic " +
+                          Convert.ToBase64String(new ASCIIEncoding().GetBytes(userpass2)) + "\r\n";
 
             if (usernamePassword == "")
                 auth = "";
@@ -104,21 +136,49 @@ namespace MissionPlanner.Comms
             Port = remoteUri.Port.ToString();
 
             client = new TcpClient(host, int.Parse(Port));
+            client.Client.IOControl(IOControlCode.KeepAliveValues, TcpKeepAlive(true,36000000, 3000), null);
 
             NetworkStream ns = client.GetStream();
 
             StreamWriter sw = new StreamWriter(ns);
             StreamReader sr = new StreamReader(ns);
 
-            string line = "GET " + remoteUri.PathAndQuery + " HTTP/1.1\r\nHost: " + remoteUri.Host
-             + "\r\nNtrip-Version: Ntrip/1.0\r\nUser-Agent: Mission Planner\r\n"
-             + auth + "Connection: close\r\n\r\n";
+            string line = "GET " + remoteUri.PathAndQuery + " HTTP/1.1\r\n"
+                          + "User-Agent: NTRIP Mission Planner/1.0\r\n"
+                          + "Accept: */*\r\n"
+                          + auth 
+                          + "Connection: close\r\n\r\n";
 
             sw.Write(line);
 
+            log.Info(line);
+
             sw.Flush();
 
+            // vrs may take up to 60+ seconds to respond
+
+            if (lat != 0 || lng != 0)
+            {
+                double latdms = (int) lat + ((lat - (int) lat)*.6f);
+                double lngdms = (int) lng + ((lng - (int) lng)*.6f);
+
+                line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                 "$GP{0},{1:HHmmss.fff},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},", "GGA",
+                 DateTime.Now.ToUniversalTime(), Math.Abs(latdms * 100).ToString("0.00000"), lat < 0 ? "S" : "N",
+                 Math.Abs(lngdms * 100).ToString("0.00000"), lng < 0 ? "W" : "E", 1, 10,
+                 1, alt, "M", 0, "M", "");
+
+                string checksum = GetChecksum(line);
+                sw.WriteLine(line + "*" + checksum);
+
+                log.Info(line + "*" + checksum);
+
+                sw.Flush();
+            }
+
             line = sr.ReadLine();
+
+            log.Info(line);
 
             if (!line.Contains("200"))
             {
@@ -127,10 +187,42 @@ namespace MissionPlanner.Comms
                 throw new Exception("Bad ntrip Responce\n\n" + line);
             }
 
-            client.NoDelay = true;
-            client.Client.NoDelay = true;
-
             VerifyConnected();
+        }
+
+
+        // Calculates the checksum for a sentence
+        string GetChecksum(string sentence)
+        {
+            // Loop through all chars to get a checksum
+            int Checksum = 0;
+            foreach (char Character in sentence.ToCharArray())
+            {
+                switch (Character)
+                {
+                    case '$':
+                        // Ignore the dollar sign
+                        break;
+                    case '*':
+                        // Stop processing before the asterisk
+                        continue;
+                    default:
+                        // Is this the first value for the checksum?
+                        if (Checksum == 0)
+                        {
+                            // Yes. Set the checksum to the value
+                            Checksum = Convert.ToByte(Character);
+                        }
+                        else
+                        {
+                            // No. XOR the checksum with this character's value
+                            Checksum = Checksum ^ Convert.ToByte(Character);
+                        }
+                        break;
+                }
+            }
+            // Return the checksum formatted as a two-character hexadecimal
+            return Checksum.ToString("X2");
         }
 
         void VerifyConnected()
@@ -147,7 +239,7 @@ namespace MissionPlanner.Comms
                 if (client != null && retrys > 0)
                 {
                     log.Info("ntrip reconnect");
-                    client.Connect(host,int.Parse(Port));
+                    doConnect();
                     retrys--;
                 }
 
@@ -162,7 +254,7 @@ namespace MissionPlanner.Comms
             {
                 if (length < 1) { return 0; }
 
-				return client.Client.Receive(readto, offset, length, SocketFlags.None);
+				return client.Client.Receive(readto, offset, length, SocketFlags.Partial);
 /*
                 byte[] temp = new byte[length];
                 clientbuf.Read(temp, 0, length);

@@ -6,15 +6,18 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
+using System.Timers;
 using System.Windows.Forms;
 using log4net;
+using Microsoft.Scripting.Utils;
 using MissionPlanner.Controls;
 using MissionPlanner.Utilities;
 
 namespace MissionPlanner.GCSViews.ConfigurationView
 {
-    public partial class ConfigRawParams : UserControl, IActivate
+    public partial class ConfigRawParams : UserControl, IActivate, IDeactivate
     {
         // from http://stackoverflow.com/questions/2512781/winforms-big-paragraph-tooltip/2512895#2512895
         private const int maximumSingleLineTooltipLength = 50;
@@ -42,16 +45,34 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             BUT_paramfileload.Enabled = false;
             ThreadPool.QueueUserWorkItem(updatedefaultlist);
 
-            SuspendLayout();
+            Params.Enabled = false;
+
+            foreach (DataGridViewColumn col in Params.Columns)
+            {
+                if (!String.IsNullOrEmpty(Settings.Instance["rawparam_" + col.Name + "_width"]))
+                {
+                    col.Width = Settings.Instance.GetInt32("rawparam_" + col.Name + "_width");
+                    log.InfoFormat("{0} to {1}", col.Name, col.Width);
+                }
+            }
 
             processToScreen();
 
-            ResumeLayout();
+            Params.Enabled = true;
 
             Common.MessageShowAgain(Strings.RawParamWarning, Strings.RawParamWarningi);
 
-
             startup = false;
+
+            txt_search.Focus();
+        }
+
+        public void Deactivate()
+        {
+            foreach (DataGridViewColumn col in Params.Columns)
+            {
+                Settings.Instance["rawparam_" + col.Name + "_width"] = col.Width.ToString();
+            }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -59,12 +80,6 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (keyData == (Keys.Control | Keys.S))
             {
                 BUT_writePIDS_Click(null, null);
-                return true;
-            }
-
-            if (keyData == (Keys.Control | Keys.F))
-            {
-                BUT_find_Click(null, null);
                 return true;
             }
 
@@ -94,8 +109,13 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             var param2 = ParamFile.loadParamFile(fn);
 
+            var loaded = 0;
+            var missed = 0;
+            List<string> missing = new List<string>();
+
             foreach (string name in param2.Keys)
             {
+                var set = false;
                 var value = param2[name].ToString();
                 // set param table as well
                 foreach (DataGridViewRow row in Params.Rows)
@@ -124,11 +144,32 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                         continue;
                     if (row.Cells[0].Value.ToString() == name)
                     {
+                        set = true;
                         if (row.Cells[1].Value.ToString() != value)
                             row.Cells[1].Value = value;
                         break;
                     }
                 }
+
+                if (set)
+                {
+                    loaded++;
+                }
+                else
+                {
+                    missed++;
+                    missing.Add(name);
+                }
+            }
+
+            if (missed > 0)
+            {
+                string list = "";
+                foreach (var item in missing)
+                {
+                    list += item + " ";
+                }
+                CustomMessageBox.Show("Missing " + missed + " params\n"+ list, "No matching Params", MessageBoxButtons.OK);
             }
         }
 
@@ -150,7 +191,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                     {
                         try
                         {
-                            var value = float.Parse(row.Cells[1].Value.ToString());
+                            var value = double.Parse(row.Cells[1].Value.ToString());
 
                             data[row.Cells[0].Value.ToString()] = value;
                         }
@@ -167,9 +208,19 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
         private void BUT_writePIDS_Click(object sender, EventArgs e)
         {
-            var temp = (Hashtable) _changes.Clone();
+            if (Common.MessageShowAgain("Write Raw Params", "Are you Sure?") != DialogResult.OK)
+                return;
 
-            foreach (string value in temp.Keys)
+            // sort with enable at the bottom - this ensures params are set before the function is disabled
+            var temp = new List<string>();
+            foreach (var item in _changes.Keys)
+            {
+                temp.Add((string)item);
+            }
+
+            temp.SortENABLE();
+
+            foreach (string value in temp)
             {
                 try
                 {
@@ -214,7 +265,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
         private void BUT_compare_Click(object sender, EventArgs e)
         {
-            var param2 = new Hashtable();
+            var param2 = new Dictionary<string, double>();
 
             using (var ofd = new OpenFileDialog
             {
@@ -242,7 +293,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (!MainV2.comPort.BaseStream.IsOpen)
                 return;
 
-            if (DialogResult.OK ==
+            if (!MainV2.comPort.MAV.cs.armed || DialogResult.OK ==
                 CustomMessageBox.Show(Strings.WarningUpdateParamList, Strings.ERROR, MessageBoxButtons.OKCancel))
             {
                 ((Control) sender).Enabled = false;
@@ -354,11 +405,15 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
             //Params.Sort(Params.Columns[0], ListSortDirection.Ascending);
 
+            log.Info("processToScreen");
+
             var sorted = new List<string>();
             foreach (string item in MainV2.comPort.MAV.param.Keys)
                 sorted.Add(item);
 
             sorted.Sort();
+
+            log.Info("sorted");
 
             var rowlist = new List<DataGridViewRow>();
 
@@ -368,13 +423,13 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 if (value == null || value == "")
                     continue;
 
-                //System.Diagnostics.Debug.WriteLine("Doing: " + value);
+                log.Info("Doing: " + value);
 
                 var row = new DataGridViewRow();
                 rowlist.Add(row);
                 row.CreateCells(Params);
                 row.Cells[Command.Index].Value = value;
-                row.Cells[Value.Index].Value = ((float) MainV2.comPort.MAV.param[value]).ToString();
+                row.Cells[Value.Index].Value = MainV2.comPort.MAV.param[value].ToString();
                 try
                 {
                     var metaDataDescription = ParameterMetaDataRepository.GetParameterMetaData(value,
@@ -402,7 +457,13 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 }
             }
 
+            log.Info("about to add all");
+
+            Params.Enabled = false;
             Params.Rows.AddRange(rowlist.ToArray());
+            Params.Enabled = true;
+
+            log.Info("Done");
         }
 
         private void updatedefaultlist(object crap)
@@ -428,34 +489,36 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             }
         }
 
-        private void BUT_find_Click(object sender, EventArgs e)
+        void filterList(string searchfor)
         {
-            var searchfor = "";
-            InputBox.Show("Search For", "Enter a single word to search for", ref searchfor);
-
-            foreach (DataGridViewRow row in Params.Rows)
+            if (searchfor.Length >= 2 || searchfor.Length == 0)
             {
-                foreach (DataGridViewCell cell in row.Cells)
-                {
-                    if (cell.Value != null && cell.Value.ToString().ToLower().Contains(searchfor.ToLower()))
-                    {
-                        row.Visible = true;
-                        break;
-                    }
-                    row.Visible = false;
-                }
-            }
+                Regex filter = new Regex(searchfor,RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
 
-            Params.Refresh();
+                foreach (DataGridViewRow row in Params.Rows)
+                {
+                    foreach (DataGridViewCell cell in row.Cells)
+                    {
+                        if (cell.Value != null && filter.IsMatch(cell.Value.ToString()))
+                        {
+                            row.Visible = true;
+                            break;
+                        }
+                        row.Visible = false;
+                    }
+                }
+
+                Params.Refresh();
+            }
         }
 
         private void BUT_paramfileload_Click(object sender, EventArgs e)
         {
-            var filepath = Application.StartupPath + Path.DirectorySeparatorChar + CMB_paramfiles.Text;
+            var filepath = Settings.GetUserDataDirectory() + CMB_paramfiles.Text;
 
             try
             {
-                var data = GitHubContent.GetFileContent("diydrones", "ardupilot",
+                var data = GitHubContent.GetFileContent("ardupilot", "ardupilot",
                     ((GitHubContent.FileInfo) CMB_paramfiles.SelectedValue).path);
 
                 File.WriteAllBytes(filepath, data);
@@ -493,7 +556,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 {
                     MainV2.comPort.setParam(new[] {"FORMAT_VERSION", "SYSID_SW_MREV"}, 0);
                     Thread.Sleep(1000);
-                    MainV2.comPort.doReboot(false);
+                    MainV2.comPort.doReboot(false, true);
                     MainV2.comPort.BaseStream.Close();
 
 
@@ -516,6 +579,67 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             public string name;
             public float normalvalue;
             public float scale;
+        }
+
+        private System.Timers.Timer filterTimer = new System.Timers.Timer();
+
+        private void txt_search_TextChanged(object sender, EventArgs e)
+        {
+            filterTimer.Elapsed -= FilterTimerOnElapsed;
+            filterTimer.Stop();
+            filterTimer.Interval = 500;
+            filterTimer.Elapsed += FilterTimerOnElapsed;
+            filterTimer.Start();
+        }
+
+        private void FilterTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            filterTimer.Stop();
+            Invoke((Action) delegate
+            {
+                filterList(txt_search.Text);
+            });
+        }
+
+        private void Params_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            // Only process the Description column
+            if (e.RowIndex == -1 || startup || e.ColumnIndex != 4)
+                return;
+
+            try
+            {
+                string descStr = Params[e.ColumnIndex, e.RowIndex].Value.ToString();
+                CheckForUrlAndLaunchInBrowser(descStr);
+            }
+            catch { }
+        }
+
+        public static void CheckForUrlAndLaunchInBrowser(string stringWithPossibleUrl)
+        {
+            if (stringWithPossibleUrl == null)
+                return;
+
+            foreach (string url in stringWithPossibleUrl.Split(' '))
+            {
+                Uri uriResult;
+                if (Uri.TryCreate(url, UriKind.Absolute, out uriResult) &&
+                    (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                {
+                    try
+                    {
+                        // launch the URL in your default browser
+                        System.Diagnostics.Process process = new System.Diagnostics.Process();
+                        process.StartInfo.UseShellExecute = true;
+                        process.StartInfo.FileName = url;
+                        process.Start();
+                    }
+                    catch { }
+
+                    // only handle the first valid URL
+                    return;
+                }
+            }
         }
     }
 }

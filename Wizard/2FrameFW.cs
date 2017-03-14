@@ -21,6 +21,9 @@ namespace MissionPlanner.Wizard
         {
             if (Wizard.config.ContainsKey("fwframe"))
             {
+                if (MainV2.comPort.BaseStream.IsOpen)
+                    return 2;
+
                 return 1;
             }
             return 0;
@@ -30,10 +33,11 @@ namespace MissionPlanner.Wizard
         {
             return false;
         }
+
         void setfwframe(object sender)
         {
             // only remembers the last selected item
-            Wizard.config["fwframe"] = ((Control)sender).Tag.ToString();
+            Wizard.config["fwframe"] = ((Control) sender).Tag.ToString();
         }
 
         private void pictureBox_Click(object sender, EventArgs e)
@@ -47,7 +51,7 @@ namespace MissionPlanner.Wizard
         {
             foreach (var ctl in this.panel1.Controls)
             {
-                if (ctl.GetType() == typeof(PictureBoxMouseOver))
+                if (ctl.GetType() == typeof (PictureBoxMouseOver))
                 {
                     (ctl as PictureBoxMouseOver).selected = false;
                 }

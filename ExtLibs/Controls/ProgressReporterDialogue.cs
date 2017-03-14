@@ -69,7 +69,7 @@ namespace MissionPlanner.Controls
             // mono fix - ensure the dialog is running
             while (this.IsHandleCreated == false)
             {
-                System.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(200);
             }
 
             
@@ -94,6 +94,7 @@ namespace MissionPlanner.Controls
                      if (!this.Focused)
                      {
                          this.Focus();
+                         System.Threading.Thread.Sleep(200);
                          Application.DoEvents();
                      }
                 });
@@ -330,7 +331,20 @@ namespace MissionPlanner.Controls
     public class ProgressWorkerEventArgs : EventArgs
     {
         public string ErrorMessage;
-        public volatile bool CancelRequested;
+        volatile bool _CancelRequested = false;
+        public bool CancelRequested
+        {
+            get
+            {
+                return _CancelRequested;
+            }
+            set
+            {
+                _CancelRequested = value; if (CancelRequestChanged != null) CancelRequestChanged(this, new PropertyChangedEventArgs("CancelRequested"));
+            }
+        }
         public volatile bool CancelAcknowledged;
+
+        public event PropertyChangedEventHandler CancelRequestChanged;
     }
 }

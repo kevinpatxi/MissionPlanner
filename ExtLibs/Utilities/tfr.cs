@@ -18,7 +18,7 @@ namespace MissionPlanner.Utilities
 
         public static event EventHandler GotTFRs;
 
-        static string tfrurl = "http://www.jepptech.com/tfr/Query.asp?UserID=Public";
+        public static string tfrurl = "http://www.jepptech.com/tfr/Query.asp?UserID=Public";
 
         public static List<tfritem> tfrs = new List<tfritem>();
 
@@ -35,7 +35,7 @@ namespace MissionPlanner.Utilities
 
         // R is inclusive, B is exclusive
 
-        static string tfrcache = System.Windows.Forms.Application.StartupPath + Path.DirectorySeparatorChar + "tfr.xml";
+        public static string tfrcache = "tfr.xml";
 
         public static void GetTFRs()
         {
@@ -61,15 +61,17 @@ namespace MissionPlanner.Utilities
                     // Set the State of request to asynchronous.
                     WebRequest myWebRequest1 = (WebRequest)ar.AsyncState;
 
-                    WebResponse response = myWebRequest1.EndGetResponse(ar);
+                    using (WebResponse response = myWebRequest1.EndGetResponse(ar))
+                    {
 
-                    var st = response.GetResponseStream();
+                        var st = response.GetResponseStream();
 
-                    StreamReader sr = new StreamReader(st);
+                        StreamReader sr = new StreamReader(st);
 
-                    content = sr.ReadToEnd();
+                        content = sr.ReadToEnd();
 
-                    File.WriteAllText(tfrcache, content);                    
+                        File.WriteAllText(tfrcache, content);
+                    }
                 }
 
                 XDocument xdoc = XDocument.Parse(content);
@@ -148,8 +150,6 @@ namespace MissionPlanner.Utilities
 
                 var matches = all.Matches(BOUND);
 
-                Console.WriteLine(BOUND);
-
                 bool isarcterminate = false;
                 bool iscircleterminate = false;
                 int arcdir = 0;
@@ -160,6 +160,16 @@ namespace MissionPlanner.Utilities
                 {
                     try
                     {
+                        if (item.Groups[0].Value.ToString().StartsWith("R") || item.Groups[0].Value.ToString().StartsWith("B"))
+                        {
+                            // start new element
+                            if (pointlist.Count > 0)
+                            {
+                                list.Add(pointlist);
+                                pointlist = new List<PointLatLng>();
+                            }
+                        }
+
                         if (item.Groups[2].Value == "L")
                         {
                             var point = new PointLatLngAlt(double.Parse(item.Groups[4].Value, CultureInfo.InvariantCulture), double.Parse(item.Groups[6].Value, CultureInfo.InvariantCulture));
@@ -198,8 +208,6 @@ namespace MissionPlanner.Utilities
 
                                 pointlist.Add(point);
 
-                                list.Add(pointlist);
-                                pointlist = new List<PointLatLng>();
 
                                 isarcterminate = false;
                                 iscircleterminate = false;
@@ -269,6 +277,9 @@ namespace MissionPlanner.Utilities
                     }
                     catch { }
                 }
+
+                if(pointlist.Count > 0)
+                    list.Add(pointlist);
 
                 return list;
             }

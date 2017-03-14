@@ -32,6 +32,19 @@ namespace MissionPlanner.Log
             public string[] items;
             public int timems;
             public int lineno;
+
+            internal DFLog parent;
+
+            public string this[string item]
+            {
+                get
+                {
+                    var index = parent.FindMessageOffset(msgtype, item);
+                    if (index == -1)
+                        return null;
+                    return items[index];
+                }
+            }
         }
 
         public enum error_subsystem
@@ -54,37 +67,12 @@ namespace MissionPlanner.Log
             EKF_CHECK = 16,
             FAILSAFE_EKF = 17,
             BARO = 18,
-        }
-
-        public enum error_code
-        {
-            ERROR_RESOLVED = 0,
-            FAILED_TO_INITIALISE = 1,
-            // subsystem specific error codes -- radio
-            RADIO_LATE_FRAME = 2,
-            // subsystem specific error codes -- failsafe_thr, batt, gps
-            FAILSAFE_RESOLVED = 0,
-            FAILSAFE_OCCURRED = 1,
-            // subsystem specific error codes -- compass
-            COMPASS_FAILED_TO_READ = 2,
-            // subsystem specific error codes -- gps
-            GPS_GLITCH = 2,
-            // subsystem specific error codes -- main
-            MAIN_INS_DELAY = 1,
-            // subsystem specific error codes -- crash checker
-            CRASH_CHECK_CRASH = 1,
-            CRASH_CHECK_LOSS_OF_CONTROL = 2,
-            // subsystem specific error codes -- flip
-            FLIP_ABANDONED = 2,
-            // subsystem specific error codes -- autotune
-            AUTOTUNE_BAD_GAINS = 2,
-            // parachute failed to deploy because of low altitude
-            PARACHUTE_TOO_LOW = 2,
-            // EKF check definitions
-            EKF_CHECK_BAD_VARIANCE = 2,
-            EKF_CHECK_BAD_VARIANCE_CLEARED = 0,
-            // Baro specific error codes
-            BARO_GLITCH = 2,
+            CPU = 19,
+            ADSB = 20,
+            TERRAIN = 21,
+            NAVIGATION = 22,
+            FAILSAFE_TERRAIN = 23,
+            EKF_PRIMARY = 24,
         }
 
         public enum events
@@ -94,6 +82,7 @@ namespace MissionPlanner.Log
             DATA_MAVLINK_INT16 = 3,
             DATA_MAVLINK_INT8 = 4,
             DATA_AP_STATE = 7,
+            DATA_SYSTEM_TIME_SET = 8,
             DATA_INIT_SIMPLE_BEARING = 9,
             DATA_ARMED = 10,
             DATA_DISARMED = 11,
@@ -126,17 +115,30 @@ namespace MissionPlanner.Log
             DATA_ACRO_TRAINER_DISABLED = 43,
             DATA_ACRO_TRAINER_LEVELING = 44,
             DATA_ACRO_TRAINER_LIMITED = 45,
-            DATA_EPM_ON = 46,
-            DATA_EPM_OFF = 47,
-            DATA_EPM_NEUTRAL = 48,
+            DATA_GRIPPER_GRAB = 46,
+            DATA_GRIPPER_RELEASE = 47,
+            DATA_GRIPPER_NEUTRAL = 48,
             DATA_PARACHUTE_DISABLED = 49,
             DATA_PARACHUTE_ENABLED = 50,
             DATA_PARACHUTE_RELEASED = 51,
+            DATA_LANDING_GEAR_DEPLOYED = 52,
+            DATA_LANDING_GEAR_RETRACTED = 53,
+            DATA_MOTORS_EMERGENCY_STOPPED = 54,
+            DATA_MOTORS_EMERGENCY_STOP_CLEARED = 55,
+            DATA_MOTORS_INTERLOCK_DISABLED = 56,
+            DATA_MOTORS_INTERLOCK_ENABLED = 57,
+            DATA_ROTOR_RUNUP_COMPLETE = 58, // Heli only
+            DATA_ROTOR_SPEED_BELOW_CRITICAL = 59, // Heli only
+            DATA_EKF_ALT_RESET = 60,
+            DATA_LAND_CANCELLED_BY_PILOT = 61,
+            DATA_EKF_YAW_RESET = 62,
+            DATA_AVOIDANCE_ADSB_ENABLE = 63,
+            DATA_AVOIDANCE_ADSB_DISABLE = 64,
         }
 
-        public static Dictionary<string, Label> logformat = new Dictionary<string, Label>();
+        public Dictionary<string, Label> logformat = new Dictionary<string, Label>();
 
-        public static void Clear()
+        public void Clear()
         {
             logformat.Clear();
 
@@ -150,9 +152,9 @@ namespace MissionPlanner.Log
             gpsstarttime = DateTime.MinValue;
         }
 
-        public static DateTime GetFirstGpsTime(string fn)
+        public DateTime GetFirstGpsTime(string fn)
         {
-            using (StreamReader sr = new StreamReader(fn)) 
+            using (StreamReader sr = new StreamReader(fn))
             {
                 while (!sr.EndOfStream)
                 {
@@ -174,7 +176,7 @@ namespace MissionPlanner.Log
             return DateTime.MinValue;
         }
 
-        public static List<DFItem> ReadLog(string fn)
+        public List<DFItem> ReadLog(string fn)
         {
             List<DFItem> answer = new List<DFItem>();
 
@@ -187,15 +189,15 @@ namespace MissionPlanner.Log
         }
 
         // current gps time
-        static DateTime gpstime = DateTime.MinValue;
+        DateTime gpstime = DateTime.MinValue;
         // last time of message
-        static DateTime lasttime = DateTime.MinValue;
+        DateTime lasttime = DateTime.MinValue;
         // first valid gpstime
-        static DateTime gpsstarttime = DateTime.MinValue;
+        DateTime gpsstarttime = DateTime.MinValue;
 
-        static int msoffset = 0;
+        long msoffset = 0;
 
-        public static List<DFItem> ReadLog(Stream fn)
+        public List<DFItem> ReadLog(Stream fn)
         {
             Clear();
             GC.Collect();
@@ -212,7 +214,7 @@ namespace MissionPlanner.Log
             int lineno = 0;
             msoffset = 0;
 
-            log.Info("loading log " + (GC.GetTotalMemory(false) / 1024.0/1024.0));           
+            log.Info("loading log " + (GC.GetTotalMemory(false)/1024.0/1024.0));
 
             using (StreamReader sr = new StreamReader(fn))
             {
@@ -234,22 +236,23 @@ namespace MissionPlanner.Log
                         CustomMessageBox.Show("out of memory");
                         return answer;
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
             }
 
-            log.Info("loaded log " + (GC.GetTotalMemory(false) / 1024.0 / 1024.0));
+            log.Info("loaded log " + (GC.GetTotalMemory(false)/1024.0/1024.0));
 
             return answer;
         }
-        
-        public static DFItem GetDFItemFromLine(string line, int lineno)
-        {
 
+        public DFItem GetDFItemFromLine(string line, int lineno)
+        {
             //line = line.Replace(",", ",");
             //line = line.Replace(":", ":");
 
-            string[] items = line.Trim().Split(new char[] { ',', ':' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] items = line.Trim().Split(new char[] {',', ':'}, StringSplitOptions.RemoveEmptyEntries);
 
             if (line.StartsWith("FMT"))
             {
@@ -287,7 +290,7 @@ namespace MissionPlanner.Log
                         {
                             try
                             {
-                                msoffset = int.Parse(items[indextimeus]) / 1000;
+                                msoffset = long.Parse(items[indextimeus])/1000;
                             }
                             catch
                             {
@@ -314,9 +317,11 @@ namespace MissionPlanner.Log
                         throw new ArgumentNullException();
                     }
 
-                    items[items.Length - 2] = "" + (DFLog.error_subsystem)int.Parse(items[index]);
+                    items[items.Length - 2] = "" + (DFLog.error_subsystem) int.Parse(items[index]);
                 }
-                catch { }
+                catch
+                {
+                }
             }
             else if (line.StartsWith("EV"))
             {
@@ -329,15 +334,17 @@ namespace MissionPlanner.Log
                         throw new ArgumentNullException();
                     }
 
-                    items[items.Length - 1] = "" + (DFLog.events)int.Parse(items[index]);
+                    items[items.Length - 1] = "" + (DFLog.events) int.Parse(items[index]);
                 }
-                catch { }
+                catch
+                {
+                }
             }
             else if (line.StartsWith("MAG"))
             {
             }
 
-            DFItem item = new DFItem();
+            DFItem item = new DFItem() {parent = this};
             try
             {
                 item.lineno = lineno;
@@ -347,47 +354,59 @@ namespace MissionPlanner.Log
                     item.msgtype = items[0];
                     item.items = items;
                     bool timeus = false;
-                    
-                        if (logformat.ContainsKey(item.msgtype))
+
+                    if (logformat.ContainsKey(item.msgtype))
+                    {
+                        int indextimems = FindMessageOffset(item.msgtype, "TimeMS");
+
+                        if (item.msgtype.StartsWith("GPS"))
                         {
-                            int indextimems = FindMessageOffset(item.msgtype, "TimeMS");
+                            indextimems = FindMessageOffset(item.msgtype, "T");
+                        }
 
-                            if (item.msgtype.StartsWith("GPS"))
+                        if (indextimems == -1)
+                        {
+                            indextimems = FindMessageOffset(item.msgtype, "TimeUS");
+                            timeus = true;
+                        }
+
+                        if (indextimems != -1)
+                        {
+                            long ntime = 0;
+
+                            if (long.TryParse(items[indextimems], out ntime))
                             {
-                                indextimems = FindMessageOffset(item.msgtype, "T");
-                            }
-
-                            if (indextimems == -1)
-                            {
-                                indextimems = FindMessageOffset(item.msgtype, "TimeUS");
-                                timeus = true;
-                            } 
-
-                            if (indextimems != -1)
-                            {
-                                item.timems = int.Parse(items[indextimems]);
-
                                 if (timeus)
-                                    item.timems /= 1000;
+                                    ntime /= 1000;
 
-                                item.time = gpsstarttime.AddMilliseconds(item.timems - msoffset);
+                                item.timems = (int) ntime;
 
-                                lasttime = item.time;
+                                if (gpsstarttime != DateTime.MinValue)
+                                {
+                                    item.time = gpsstarttime.AddMilliseconds(item.timems - msoffset);
+                                    lasttime = item.time;
+                                }
                             }
                             else
                             {
                                 item.time = lasttime;
                             }
                         }
-                    
+                        else
+                        {
+                            item.time = lasttime;
+                        }
+                    }
                 }
             }
-            catch { }
+            catch
+            {
+            }
 
             return item;
         }
 
-        public static void FMTLine(string strLine)
+        public void FMTLine(string strLine)
         {
             try
             {
@@ -401,17 +420,26 @@ namespace MissionPlanner.Log
                     string[] names = new string[items.Length - 5];
                     Array.ConstrainedCopy(items, 5, names, 0, names.Length);
 
-                    Label lbl = new Label() { Name = items[3], Id = int.Parse(items[1]), Format = items[4], Length = int.Parse(items[2]), FieldNames = names };
+                    Label lbl = new Label()
+                    {
+                        Name = items[3],
+                        Id = int.Parse(items[1]),
+                        Format = items[4],
+                        Length = int.Parse(items[2]),
+                        FieldNames = names
+                    };
 
                     logformat[lbl.Name] = lbl;
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         //FMT, 130, 45, GPS, BIHBcLLeeEefI, Status,TimeMS,Week,NSats,HDop,Lat,Lng,RelAlt,Alt,Spd,GCrs,VZ,T
         //GPS, 3, 130040903, 1769, 10, 0.00, -35.3547178, 149.1696673, 885.52, 870.45, 24.56, 321.44, 2.450000, 127615
-        public static DateTime GetTimeGPS(string gpsline)
+        public DateTime GetTimeGPS(string gpsline)
         {
             if (gpsline.StartsWith("GPS") && logformat.Count > 0)
             {
@@ -425,7 +453,9 @@ namespace MissionPlanner.Log
 
                 if (indexstatus != -1)
                 {
-                    if (items[indexstatus].Trim() != "3" && items[indexstatus].Trim() != "2")
+                    // 3d lock or better
+                    if (items[indexstatus].Trim() == "0" || items[indexstatus].Trim() == "1" ||
+                        items[indexstatus].Trim() == "2")
                         return DateTime.MinValue;
                 }
 
@@ -446,7 +476,14 @@ namespace MissionPlanner.Log
                 if (indextimems == -1 || indexweek == -1)
                     return DateTime.MinValue;
 
-                return gpsTimeToTime(int.Parse(items[indexweek]), int.Parse(items[indextimems]) / 1000.0);
+                try
+                {
+                    return gpsTimeToTime(int.Parse(items[indexweek]), long.Parse(items[indextimems]) / 1000.0);
+                }
+                catch 
+                {
+                    return DateTime.MinValue;
+                }
             }
 
             return DateTime.MinValue;
@@ -454,19 +491,19 @@ namespace MissionPlanner.Log
 
         public static DateTime gpsTimeToTime(int week, double sec)
         {
-            int leap = 16;
+            int leap = 17;
 
             // not correct for leap seconds                   day   days  weeks  seconds
             var basetime = new DateTime(1980, 1, 6, 0, 0, 0, DateTimeKind.Utc);
-            basetime = basetime.AddDays(week * 7);
+            basetime = basetime.AddDays(week*7);
             basetime = basetime.AddSeconds((sec - leap));
 
             return basetime.ToLocalTime();
         }
 
-        public static int FindMessageOffset(string linetype,string find)
+        public int FindMessageOffset(string linetype, string find)
         {
-            if (logformat.ContainsKey(linetype))
+            if (logformat.ContainsKey(linetype.ToUpper()))
                 return Log.DFLog.FindInArray(logformat[linetype].FieldNames, find);
 
             return -1;
@@ -477,7 +514,7 @@ namespace MissionPlanner.Log
             int a = 1;
             foreach (string item in array)
             {
-                if (item == find)
+                if (item.ToUpper() == find.ToUpper())
                 {
                     return a;
                 }

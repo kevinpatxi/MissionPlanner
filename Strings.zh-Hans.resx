@@ -263,7 +263,7 @@
     <value>断开连接</value>
   </data>
   <data name="Failclog" xml:space="preserve">
-    <value>Failed to create log - wont log this session</value>
+    <value>创建日志失败 - 将不会记录本次会话</value>
   </data>
   <data name="NewFirmware" xml:space="preserve">
     <value>新固件</value>
@@ -318,10 +318,10 @@ Mission Planner waits for 2 valid heartbeat packets before connecting</value>
     <value>正在检查 </value>
   </data>
   <data name="DownloadedFromInternet" xml:space="preserve">
-    <value>已从奠基网镜像下载完毕</value>
+    <value>下载完毕</value>
   </data>
   <data name="Getting" xml:space="preserve">
-    <value>正在从奠基网镜像获取 </value>
+    <value>正在获取 </value>
   </data>
   <data name="GettingUpdatedParams" xml:space="preserve">
     <value>正在获取更新的参数列表</value>
@@ -342,7 +342,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting</value>
     <value>正在检测控制板的版本</value>
   </data>
   <data name="DownloadingFromInternet" xml:space="preserve">
-    <value>正在从奠基网镜像下载</value>
+    <value>正在下载</value>
   </data>
   <data name="EppromChanged" xml:space="preserve">
     <value>Epprom更改了, 您所有的设置将在更新中丢失,
@@ -364,10 +364,10 @@ Mission Planner waits for 2 valid heartbeat packets before connecting</value>
     <value>上传失败</value>
   </data>
   <data name="GettingFWList" xml:space="preserve">
-    <value>正在从奠基网镜像获取固件列表</value>
+    <value>正在获取固件列表</value>
   </data>
   <data name="GettingFWVersion" xml:space="preserve">
-    <value>正在从奠基网镜像获取固件版本</value>
+    <value>正在获取固件版本</value>
   </data>
   <data name="InvalidBoardType" xml:space="preserve">
     <value>无效的控制板类型</value>
@@ -379,7 +379,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting</value>
     <value>正在读取十六进制文件</value>
   </data>
   <data name="ReceivedList" xml:space="preserve">
-    <value>从奠基网镜像获取列表完成</value>
+    <value>获取列表完成</value>
   </data>
   <data name="UploadComplete" xml:space="preserve">
     <value>上传完成</value>
@@ -409,7 +409,7 @@ Mission Planner waits for 2 valid heartbeat packets before connecting</value>
     <value>警告，从AC 3.1起，电机将在解锁后转动，这可以通过MOT_SPIN_ARMED参数配置</value>
   </data>
   <data name="Warningrallypointdistance" xml:space="preserve">
-    <value>Warning rally points are located greater than RALLY_LIMIT_KM</value>
+    <value>警告，集结点放置在了比RALLY_LIMIT_KM还大的地方</value>
   </data>
   <data name="MagCalibMsg" xml:space="preserve">
     <value>请单击确认并且将自动驾驶仪绕所有轴做圆周运动</value>
@@ -488,5 +488,83 @@ Mission Planner waits for 2 valid heartbeat packets before connecting</value>
   </data>
   <data name="FailSafe" xml:space="preserve">
     <value>故障保护</value>
+  </data>
+  <data name="Error_binding" xml:space="preserve">
+    <value>对频错误</value>
+  </data>
+  <data name="Put_the_transmitter_in_bind_mode__Receiver_is_waiting" xml:space="preserve">
+    <value>请将发射机置于对频(bind)模式。接收机正在等待。</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="Click_when_Done" xml:space="preserve">
+    <value>完成时点击</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>保存中</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>注意</value>
+  </data>
+  <data name="PleaseUnplugTheBoardAnd" xml:space="preserve">
+    <value>请拔下控制板，点击OK后再插入。
+Mission Planner将会在30秒内寻找控制板。</value>
+  </data>
+  <data name="ThisBoardHasBeenRetired" xml:space="preserve">
+    <value>此控制板已经退出历史舞台了，Mission Planner将会上传最后一个支持的版本到您控制板。</value>
+  </data>
+  <data name="InvalidCert" xml:space="preserve">
+    <value>证书无效</value>
+  </data>
+  <data name="YouAreUsingUnsupportedHardware" xml:space="preserve">
+    <value>您正在使用不受支持的硬件。
+此控制板没有包含真伪性的有效证书。
+请就为您的硬件签名联系您的硬件提供商。</value>
+  </data>
+  <data name="NoNeedToUpload" xml:space="preserve">
+    <value>无需上传。当前固件已经安装在控制板上。</value>
+  </data>
+  <data name="PleaseWaitForTheMusicalTones" xml:space="preserve">
+    <value>请在音乐播放完后再点击OK。</value>
+  </data>
+  <data name="ObtainFromModule" xml:space="preserve">
+    <value>从模块获取</value>
+  </data>
+  <data name="SetHere" xml:space="preserve">
+    <value>设置在这</value>
+  </data>
+  <data name="TrackerHome" xml:space="preserve">
+    <value>追踪器的家</value>
+  </data>
+  <data name="velocity_variance" xml:space="preserve">
+    <value>velocity variance</value>
+  </data>
+  <data name="compass_variance" xml:space="preserve">
+    <value>compass variance</value>
+  </data>
+  <data name="pos_horiz_variance" xml:space="preserve">
+    <value>pos horiz variance</value>
+  </data>
+  <data name="pos_vert_variance" xml:space="preserve">
+    <value>pos vert variance</value>
+  </data>
+  <data name="terrain_alt_variance" xml:space="preserve">
+    <value>地形高度差异</value>
+  </data>
+  <data name="ChangeThrottle" xml:space="preserve">
+    <value>更改油门</value>
+  </data>
+  <data name="Invalid_home_location" xml:space="preserve">
+    <value>无效的家位置</value>
+  </data>
+  <data name="Converting_bin_to_log" xml:space="preserve">
+    <value>转换bin文件到log文件</value>
+  </data>
+  <data name="UpdateNotFound" xml:space="preserve">
+    <value>没有可用更新</value>
+  </data>
+  <data name="Failed_to_connect_to_SITL_instance" xml:space="preserve">
+    <value>无法连接到SITL实例</value>
   </data>
 </root>

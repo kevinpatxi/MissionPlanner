@@ -8,6 +8,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using MissionPlanner.Attributes;
+using MissionPlanner.Mavlink;
 
 namespace MissionPlanner.Log
 {
@@ -15,147 +18,164 @@ namespace MissionPlanner.Log
     {
         public static void MapLogs(string[] logs)
         {
-            foreach (var logfile in logs)
+            Parallel.ForEach(logs, logfile => { ProcessFile(logfile); });
+        }
+
+        public static void ProcessFile(string logfile)
+        {
+            if (File.Exists(logfile + ".jpg"))
+                return;
+
+            double minx = 99999;
+            double maxx = -99999;
+            double miny = 99999;
+            double maxy = -99999;
+
+            bool sitl = false;
+
+            Dictionary<int, List<PointLatLngAlt>> loc_list = new Dictionary<int, List<PointLatLngAlt>>();
+
+            try
             {
-                if (File.Exists(logfile + ".jpg"))
-                    continue;
-
-                double minx = 99999;
-                double maxx = -99999;
-                double miny = 99999;
-                double maxy = -99999;
-
-                List<PointLatLngAlt> locs = new List<PointLatLngAlt>();
-                try
+                if (logfile.ToLower().EndsWith(".tlog"))
                 {
-                    if (logfile.ToLower().EndsWith(".tlog"))
+                    using (MAVLinkInterface mine = new MAVLinkInterface())
+                    using (
+                        mine.logplaybackfile =
+                            new BinaryReader(File.Open(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        )
                     {
-                        using (MAVLinkInterface mine = new MAVLinkInterface())
-                        using (mine.logplaybackfile = new BinaryReader(File.Open(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
+                        mine.logreadmode = true;
+                        mine.speechenabled = false;
+
+                        while (mine.logplaybackfile.BaseStream.Position < mine.logplaybackfile.BaseStream.Length)
                         {
-                            mine.logreadmode = true;
+                            MAVLink.MAVLinkMessage packet = mine.readPacket();
 
-                            CurrentState cs = new CurrentState();
+                            if (packet.Length < 5)
+                                continue;
 
-                            while (mine.logplaybackfile.BaseStream.Position < mine.logplaybackfile.BaseStream.Length)
+                            if (packet.msgid == (byte) MAVLink.MAVLINK_MSG_ID.SIM_STATE ||
+                                packet.msgid == (byte) MAVLink.MAVLINK_MSG_ID.SIMSTATE)
                             {
-                                byte[] packet = mine.readPacket();
+                                sitl = true;
+                            }
 
-                                if (packet.Length < 5)
+                            if (packet.msgid == (byte) MAVLink.MAVLINK_MSG_ID.GLOBAL_POSITION_INT)
+                            {
+                                var loc = packet.ToStructure<MAVLink.mavlink_global_position_int_t>();
+
+                                if (loc.lat == 0 || loc.lon == 0)
                                     continue;
 
-                                try
-                                {
-                                    if (MainV2.speechEngine != null)
-                                        MainV2.speechEngine.SpeakAsyncCancelAll();
-                                }
-                                catch { }
+                                var id = MAVList.GetID(packet.sysid, packet.compid);
 
-                                if (packet[5] == (byte)MAVLink.MAVLINK_MSG_ID.GLOBAL_POSITION_INT)
-                                {
-                                    var loc = packet.ByteArrayToStructure<MAVLink.mavlink_global_position_int_t>(6);
+                                if (!loc_list.ContainsKey(id))
+                                    loc_list[id] = new List<PointLatLngAlt>();
 
-                                    if (loc.lat == 0 || loc.lon == 0)
-                                        continue;
+                                loc_list[id].Add(new PointLatLngAlt(loc.lat/10000000.0f, loc.lon/10000000.0f));
 
-                                    locs.Add(new PointLatLngAlt(loc.lat / 10000000.0f, loc.lon / 10000000.0f));
-
-                                    minx = Math.Min(minx, loc.lon / 10000000.0f);
-                                    maxx = Math.Max(maxx, loc.lon / 10000000.0f);
-                                    miny = Math.Min(miny, loc.lat / 10000000.0f);
-                                    maxy = Math.Max(maxy, loc.lat / 10000000.0f);
-                                }
+                                minx = Math.Min(minx, loc.lon/10000000.0f);
+                                maxx = Math.Max(maxx, loc.lon/10000000.0f);
+                                miny = Math.Min(miny, loc.lat/10000000.0f);
+                                maxy = Math.Max(maxy, loc.lat/10000000.0f);
                             }
                         }
-
                     }
-                    else if (logfile.ToLower().EndsWith(".bin") || logfile.ToLower().EndsWith(".log"))
+                }
+                else if (logfile.ToLower().EndsWith(".bin") || logfile.ToLower().EndsWith(".log"))
+                {
+                    using (
+                        CollectionBuffer colbuf =
+                            new CollectionBuffer(File.Open(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        )
                     {
-                        bool bin = logfile.ToLower().EndsWith(".bin");
+                        loc_list[0] = new List<PointLatLngAlt>();
 
-                        using (var st = File.Open(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        foreach (var item in colbuf.GetEnumeratorType("GPS"))
                         {
-                            using (StreamReader sr = new StreamReader(st))
+                            if (item.msgtype.StartsWith("GPS"))
                             {
-                                while (sr.BaseStream.Position < sr.BaseStream.Length)
-                                {
-                                    string line = "";
+                                if (!colbuf.dflog.logformat.ContainsKey("GPS"))
+                                    continue;
 
-                                    if (bin)
-                                    {
-                                        line = BinaryLog.ReadMessage(sr.BaseStream);
-                                    }
-                                    else
-                                    {
-                                        line = sr.ReadLine();
-                                    }
+                                var status =
+                                    double.Parse(item.items[colbuf.dflog.FindMessageOffset(item.msgtype, "Status")]);
+                                var lat = double.Parse(item.items[colbuf.dflog.FindMessageOffset(item.msgtype, "Lat")]);
+                                var lon = double.Parse(item.items[colbuf.dflog.FindMessageOffset(item.msgtype, "Lng")]);
 
-                                    if (line.StartsWith("FMT"))
-                                    {
-                                        DFLog.FMTLine(line);
-                                    }
-                                    else if (line.StartsWith("GPS"))
-                                    {
-                                        var item = DFLog.GetDFItemFromLine(line, 0);
+                                if (lat == 0 || lon == 0 || status < 3)
+                                    continue;
 
-                                        var lat = double.Parse(item.items[DFLog.FindMessageOffset(item.msgtype, "Lat")]);
-                                        var lon = double.Parse(item.items[DFLog.FindMessageOffset(item.msgtype, "Lng")]);
+                                loc_list[0].Add(new PointLatLngAlt(lat, lon));
 
-                                        if (lat == 0 || lon == 0)
-                                            continue;
-
-                                        locs.Add(new PointLatLngAlt(lat, lon));
-
-                                        minx = Math.Min(minx, lon);
-                                        maxx = Math.Max(maxx, lon);
-                                        miny = Math.Min(miny, lat);
-                                        maxy = Math.Max(maxy, lat);
-                                    }
-                                }
+                                minx = Math.Min(minx, lon);
+                                maxx = Math.Max(maxx, lon);
+                                miny = Math.Min(miny, lat);
+                                maxy = Math.Max(maxy, lat);
                             }
+
                         }
                     }
+                }
 
+                if (loc_list.Count > 0 && loc_list.First().Value.Count > 10)
+                {
+                    // add a bit of buffer
+                    var area = RectLatLng.FromLTRB(minx - 0.001, maxy + 0.001, maxx + 0.001, miny - 0.001);
+                    var map = GetMap(area);
 
-                    if (locs.Count > 10)
+                    var grap = Graphics.FromImage(map);
+
+                    if (sitl)
                     {
-                        // add a bit of buffer
-                        var area = RectLatLng.FromLTRB(minx - 0.001, maxy + 0.001, maxx + 0.001, miny - 0.001);
-                        var map = GetMap(area);
+                        AddTextToMap(grap, "SITL");
+                    }
 
-                        var grap = Graphics.FromImage(map);
+                    Color[] colours =
+                    {
+                        Color.Red, Color.Orange, Color.Yellow, Color.Green, Color.Blue, Color.Indigo,
+                        Color.Violet, Color.Pink
+                    };
 
+                    int a = 0;
+                    foreach (var locs in loc_list.Values)
+                    {
                         PointF lastpoint = new PointF();
+                        var pen = new Pen(colours[a%(colours.Length - 1)]);
 
                         foreach (var loc in locs)
                         {
                             PointF newpoint = GetPixel(area, loc, map.Size);
 
                             if (!lastpoint.IsEmpty)
-                                grap.DrawLine(Pens.Red, lastpoint, newpoint);
+                                grap.DrawLine(pen, lastpoint, newpoint);
 
                             lastpoint = newpoint;
                         }
 
-                        map.Save(logfile + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
-
-                        map.Dispose();
-
-                        map = null;
+                        a++;
                     }
-                    else
-                    {
-                        DoTextMap(logfile + ".jpg", "No gps data");
-                    }
+
+                    map.Save(logfile + ".jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+
+                    map.Dispose();
+
+                    map = null;
                 }
-                catch (Exception ex) 
+                else
                 {
-                    if (ex.ToString().Contains("Mavlink 0.9"))
-                        DoTextMap(logfile + ".jpg", "Old log\nMavlink 0.9");
-
-                    continue; 
+                    DoTextMap(logfile + ".jpg", "No gps data");
                 }
             }
+            catch (Exception ex)
+            {
+                if (ex.ToString().Contains("Mavlink 0.9"))
+                    DoTextMap(logfile + ".jpg", "Old log\nMavlink 0.9");
+
+                return;
+            }
+
         }
 
         static void DoTextMap(string jpgname, string text)
@@ -164,7 +184,7 @@ namespace MissionPlanner.Log
 
             var grap = Graphics.FromImage(map);
 
-            grap.DrawString(text, SystemFonts.DefaultFont, Brushes.Red, 0, 0, StringFormat.GenericDefault);
+            AddTextToMap(grap, text);
 
             map.Save(jpgname, System.Drawing.Imaging.ImageFormat.Jpeg);
 
@@ -173,16 +193,21 @@ namespace MissionPlanner.Log
             map = null;
         }
 
-        static PointF GetPixel(RectLatLng area, PointLatLngAlt loc, Size size) 
+        static void AddTextToMap(Graphics grap, string text)
         {
-            double lon =  loc.Lng;
+            grap.DrawString(text, SystemFonts.DefaultFont, Brushes.Red, 0, 0, StringFormat.GenericDefault);
+        }
+
+        static PointF GetPixel(RectLatLng area, PointLatLngAlt loc, Size size)
+        {
+            double lon = loc.Lng;
             double lat = loc.Lat;
 
-            double lonscale = (lon - area.Left) * (size.Width - 0) / (area.Right - area.Left) + 0;
+            double lonscale = (lon - area.Left)*(size.Width - 0)/(area.Right - area.Left) + 0;
 
-            double latscale = (lat - area.Top) * (size.Height - 0) / (area.Bottom - area.Top) + 0;
+            double latscale = (lat - area.Top)*(size.Height - 0)/(area.Bottom - area.Top) + 0;
 
-            return new PointF((float)lonscale, (float)latscale);
+            return new PointF((float) lonscale, (float) latscale);
         }
 
         static Bitmap GetMap(RectLatLng area)
@@ -205,7 +230,6 @@ namespace MissionPlanner.Log
                 topLeftPx = prj.FromLatLngToPixel(area.LocationTopLeft, zoom);
                 rightButtomPx = prj.FromLatLngToPixel(area.Bottom, area.Right, zoom);
                 pxDelta = new GPoint(rightButtomPx.X - topLeftPx.X, rightButtomPx.Y - topLeftPx.Y);
-
             }
 
             // get type list at new zoom level
@@ -213,7 +237,7 @@ namespace MissionPlanner.Log
 
             int padding = 10;
 
-            Bitmap bmpDestination = new Bitmap((int)pxDelta.X + padding * 2, (int)pxDelta.Y + padding * 2);
+            Bitmap bmpDestination = new Bitmap((int) pxDelta.X + padding*2, (int) pxDelta.Y + padding*2);
 
             {
                 using (Graphics gfx = Graphics.FromImage(bmpDestination))
@@ -230,13 +254,12 @@ namespace MissionPlanner.Log
                             Exception ex;
                             using (GMapImage tile = GMaps.Instance.GetImageFrom(tp, p, zoom, out ex) as GMapImage)
                             {
-
                                 if (tile != null)
                                 {
                                     using (tile)
                                     {
-                                        long x = p.X * prj.TileSize.Width - topLeftPx.X + padding;
-                                        long y = p.Y * prj.TileSize.Width - topLeftPx.Y + padding;
+                                        long x = p.X*prj.TileSize.Width - topLeftPx.X + padding;
+                                        long y = p.Y*prj.TileSize.Width - topLeftPx.Y + padding;
                                         {
                                             gfx.DrawImage(tile.Img, x, y, prj.TileSize.Width, prj.TileSize.Height);
                                         }

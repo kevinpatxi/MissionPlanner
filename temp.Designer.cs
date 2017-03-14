@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.BUT_xplane = new MissionPlanner.Controls.MyButton();
             this.but_osdvideo = new MissionPlanner.Controls.MyButton();
             this.BUT_outputMD = new MissionPlanner.Controls.MyButton();
@@ -44,24 +43,21 @@
             this.BUT_followleader = new MissionPlanner.Controls.MyButton();
             this.BUT_driverclean = new MissionPlanner.Controls.MyButton();
             this.BUT_sorttlogs = new MissionPlanner.Controls.MyButton();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.BUT_movingbase = new MissionPlanner.Controls.MyButton();
             this.but_getfw = new MissionPlanner.Controls.MyButton();
             this.but_mavserialport = new MissionPlanner.Controls.MyButton();
-            this.button3 = new System.Windows.Forms.Button();
+            this.button3 = new MissionPlanner.Controls.MyButton();
             this.BUT_shptopoly = new MissionPlanner.Controls.MyButton();
             this.but_gimbaltest = new MissionPlanner.Controls.MyButton();
             this.but_maplogs = new MissionPlanner.Controls.MyButton();
             this.butlogindex = new MissionPlanner.Controls.MyButton();
             this.but_structtest = new MissionPlanner.Controls.MyButton();
-            this.but_rtspurl = new MissionPlanner.Controls.MyButton();
             this.but_armandtakeoff = new MissionPlanner.Controls.MyButton();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.label26 = new System.Windows.Forms.Label();
             this.label25 = new System.Windows.Forms.Label();
             this.label24 = new System.Windows.Forms.Label();
             this.label23 = new System.Windows.Forms.Label();
-            this.label22 = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
             this.label19 = new System.Windows.Forms.Label();
@@ -86,6 +82,25 @@
             this.but_sitl_comb = new MissionPlanner.Controls.MyButton();
             this.but_injectgps = new MissionPlanner.Controls.MyButton();
             this.BUT_fft = new MissionPlanner.Controls.MyButton();
+            this.but_reboot = new MissionPlanner.Controls.MyButton();
+            this.BUT_QNH = new MissionPlanner.Controls.MyButton();
+            this.but_trimble = new MissionPlanner.Controls.MyButton();
+            this.myButton_vlc = new MissionPlanner.Controls.MyButton();
+            this.but_gstream = new MissionPlanner.Controls.MyButton();
+            this.but_agemapdata = new MissionPlanner.Controls.MyButton();
+            this.myButton1 = new MissionPlanner.Controls.MyButton();
+            this.but_signkey = new MissionPlanner.Controls.MyButton();
+            this.but_optflowcalib = new MissionPlanner.Controls.MyButton();
+            this.myButton2 = new MissionPlanner.Controls.MyButton();
+            this.BUT_magfit2 = new MissionPlanner.Controls.MyButton();
+            this.but_gpsinj = new MissionPlanner.Controls.MyButton();
+            this.but_AA = new MissionPlanner.Controls.MyButton();
+            this.controlSensorsStatus1 = new MissionPlanner.Controls.ControlSensorsStatus();
+            this.but_followswarm = new MissionPlanner.Controls.MyButton();
+            this.myButton3 = new MissionPlanner.Controls.MyButton();
+            this.but_GDAL = new MissionPlanner.Controls.MyButton();
+            this.but_sortlogs = new MissionPlanner.Controls.MyButton();
+            this.but_logdlscp = new MissionPlanner.Controls.MyButton();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -253,11 +268,6 @@
             this.BUT_sorttlogs.UseVisualStyleBackColor = true;
             this.BUT_sorttlogs.Click += new System.EventHandler(this.BUT_sorttlogs_Click);
             // 
-            // timer1
-            // 
-            this.timer1.Enabled = true;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
             // BUT_movingbase
             // 
             this.BUT_movingbase.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -358,16 +368,6 @@
             this.but_structtest.UseVisualStyleBackColor = true;
             this.but_structtest.Click += new System.EventHandler(this.but_structtest_Click);
             // 
-            // but_rtspurl
-            // 
-            this.but_rtspurl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.but_rtspurl.Location = new System.Drawing.Point(3, 444);
-            this.but_rtspurl.Name = "but_rtspurl";
-            this.but_rtspurl.Size = new System.Drawing.Size(113, 15);
-            this.but_rtspurl.TabIndex = 55;
-            this.but_rtspurl.Text = "rtsp";
-            this.but_rtspurl.Click += new System.EventHandler(this.but_rtspurl_Click);
-            // 
             // but_armandtakeoff
             // 
             this.but_armandtakeoff.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -388,7 +388,6 @@
             this.tableLayoutPanel1.Controls.Add(this.label25, 1, 24);
             this.tableLayoutPanel1.Controls.Add(this.label24, 1, 23);
             this.tableLayoutPanel1.Controls.Add(this.label23, 1, 22);
-            this.tableLayoutPanel1.Controls.Add(this.label22, 1, 21);
             this.tableLayoutPanel1.Controls.Add(this.label21, 1, 20);
             this.tableLayoutPanel1.Controls.Add(this.label20, 1, 19);
             this.tableLayoutPanel1.Controls.Add(this.label19, 1, 18);
@@ -398,7 +397,6 @@
             this.tableLayoutPanel1.Controls.Add(this.but_maplogs, 0, 24);
             this.tableLayoutPanel1.Controls.Add(this.label17, 1, 16);
             this.tableLayoutPanel1.Controls.Add(this.but_gimbaltest, 0, 23);
-            this.tableLayoutPanel1.Controls.Add(this.but_rtspurl, 0, 21);
             this.tableLayoutPanel1.Controls.Add(this.label16, 1, 15);
             this.tableLayoutPanel1.Controls.Add(this.but_structtest, 0, 20);
             this.tableLayoutPanel1.Controls.Add(this.label15, 1, 14);
@@ -465,6 +463,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 3.846154F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 3.846154F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 3.846154F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(406, 548);
             this.tableLayoutPanel1.TabIndex = 57;
             // 
@@ -503,15 +502,6 @@
             this.label23.Size = new System.Drawing.Size(111, 13);
             this.label23.TabIndex = 69;
             this.label23.Text = "quad: arm and takeoff";
-            // 
-            // label22
-            // 
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(122, 441);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(192, 13);
-            this.label22.TabIndex = 68;
-            this.label22.Text = "open a rstp stream for the hud bg video";
             // 
             // label21
             // 
@@ -572,9 +562,9 @@
             this.label15.AutoSize = true;
             this.label15.Location = new System.Drawing.Point(122, 294);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(204, 13);
+            this.label15.Size = new System.Drawing.Size(252, 13);
             this.label15.TabIndex = 61;
-            this.label15.Text = "create a exclusive passthrough to the gps";
+            this.label15.Text = "create a exclusive passthrough to the gps (port 500)";
             // 
             // label14
             // 
@@ -732,18 +722,223 @@
             this.BUT_fft.UseVisualStyleBackColor = true;
             this.BUT_fft.Click += new System.EventHandler(this.BUT_fft_Click);
             // 
+            // but_reboot
+            // 
+            this.but_reboot.Location = new System.Drawing.Point(467, 149);
+            this.but_reboot.Name = "but_reboot";
+            this.but_reboot.Size = new System.Drawing.Size(75, 23);
+            this.but_reboot.TabIndex = 62;
+            this.but_reboot.Text = "reboot pixhawk";
+            this.but_reboot.UseVisualStyleBackColor = true;
+            this.but_reboot.Click += new System.EventHandler(this.but_reboot_Click);
+            // 
+            // BUT_QNH
+            // 
+            this.BUT_QNH.Location = new System.Drawing.Point(467, 178);
+            this.BUT_QNH.Name = "BUT_QNH";
+            this.BUT_QNH.Size = new System.Drawing.Size(75, 23);
+            this.BUT_QNH.TabIndex = 63;
+            this.BUT_QNH.Text = "QNH";
+            this.BUT_QNH.UseVisualStyleBackColor = true;
+            this.BUT_QNH.Click += new System.EventHandler(this.BUT_QNH_Click);
+            // 
+            // but_trimble
+            // 
+            this.but_trimble.Location = new System.Drawing.Point(467, 207);
+            this.but_trimble.Name = "but_trimble";
+            this.but_trimble.Size = new System.Drawing.Size(75, 23);
+            this.but_trimble.TabIndex = 64;
+            this.but_trimble.Text = "trimble";
+            this.but_trimble.UseVisualStyleBackColor = true;
+            this.but_trimble.Click += new System.EventHandler(this.but_trimble_Click);
+            // 
+            // myButton_vlc
+            // 
+            this.myButton_vlc.Location = new System.Drawing.Point(467, 236);
+            this.myButton_vlc.Name = "myButton_vlc";
+            this.myButton_vlc.Size = new System.Drawing.Size(75, 23);
+            this.myButton_vlc.TabIndex = 65;
+            this.myButton_vlc.Text = "vlc";
+            this.myButton_vlc.UseVisualStyleBackColor = true;
+            this.myButton_vlc.Click += new System.EventHandler(this.myButton_vlc_Click);
+            // 
+            // but_gstream
+            // 
+            this.but_gstream.Location = new System.Drawing.Point(467, 265);
+            this.but_gstream.Name = "but_gstream";
+            this.but_gstream.Size = new System.Drawing.Size(75, 23);
+            this.but_gstream.TabIndex = 66;
+            this.but_gstream.Text = "gstream";
+            this.but_gstream.UseVisualStyleBackColor = true;
+            this.but_gstream.Click += new System.EventHandler(this.but_gstream_Click);
+            // 
+            // but_agemapdata
+            // 
+            this.but_agemapdata.Location = new System.Drawing.Point(467, 294);
+            this.but_agemapdata.Name = "but_agemapdata";
+            this.but_agemapdata.Size = new System.Drawing.Size(75, 23);
+            this.but_agemapdata.TabIndex = 75;
+            this.but_agemapdata.Text = "Age Map Data";
+            this.but_agemapdata.UseVisualStyleBackColor = true;
+            this.but_agemapdata.Click += new System.EventHandler(this.but_agemapdata_Click);
+            // 
+            // myButton1
+            // 
+            this.myButton1.Location = new System.Drawing.Point(467, 323);
+            this.myButton1.Name = "myButton1";
+            this.myButton1.Size = new System.Drawing.Size(75, 23);
+            this.myButton1.TabIndex = 73;
+            this.myButton1.Text = "Param gen cust";
+            this.myButton1.UseVisualStyleBackColor = true;
+            this.myButton1.Click += new System.EventHandler(this.myButton1_Click_2);
+            // 
+            // but_signkey
+            // 
+            this.but_signkey.Location = new System.Drawing.Point(467, 352);
+            this.but_signkey.Name = "but_signkey";
+            this.but_signkey.Size = new System.Drawing.Size(75, 23);
+            this.but_signkey.TabIndex = 76;
+            this.but_signkey.Text = "signing";
+            this.but_signkey.UseVisualStyleBackColor = true;
+            this.but_signkey.Click += new System.EventHandler(this.but_signkey_Click);
+            // 
+            // but_optflowcalib
+            // 
+            this.but_optflowcalib.Location = new System.Drawing.Point(467, 381);
+            this.but_optflowcalib.Name = "but_optflowcalib";
+            this.but_optflowcalib.Size = new System.Drawing.Size(75, 23);
+            this.but_optflowcalib.TabIndex = 77;
+            this.but_optflowcalib.Text = "opticalflow calib";
+            this.but_optflowcalib.UseVisualStyleBackColor = true;
+            this.but_optflowcalib.Click += new System.EventHandler(this.but_optflowcalib_Click);
+            // 
+            // myButton2
+            // 
+            this.myButton2.Location = new System.Drawing.Point(467, 414);
+            this.myButton2.Name = "myButton2";
+            this.myButton2.Size = new System.Drawing.Size(75, 23);
+            this.myButton2.TabIndex = 78;
+            this.myButton2.Text = "sphere";
+            this.myButton2.UseVisualStyleBackColor = true;
+            this.myButton2.Click += new System.EventHandler(this.myButton2_Click);
+            // 
+            // BUT_magfit2
+            // 
+            this.BUT_magfit2.Location = new System.Drawing.Point(467, 443);
+            this.BUT_magfit2.Name = "BUT_magfit2";
+            this.BUT_magfit2.Size = new System.Drawing.Size(75, 23);
+            this.BUT_magfit2.TabIndex = 79;
+            this.BUT_magfit2.Text = "mag calb log";
+            this.BUT_magfit2.UseVisualStyleBackColor = true;
+            this.BUT_magfit2.Click += new System.EventHandler(this.BUT_magfit2_Click);
+            // 
+            // but_gpsinj
+            // 
+            this.but_gpsinj.Location = new System.Drawing.Point(467, 472);
+            this.but_gpsinj.Name = "but_gpsinj";
+            this.but_gpsinj.Size = new System.Drawing.Size(75, 23);
+            this.but_gpsinj.TabIndex = 81;
+            this.but_gpsinj.Text = "extract gps_inject";
+            this.but_gpsinj.UseVisualStyleBackColor = true;
+            this.but_gpsinj.Click += new System.EventHandler(this.but_gpsinj_Click);
+            // 
+            // but_AA
+            // 
+            this.but_AA.Location = new System.Drawing.Point(467, 501);
+            this.but_AA.Name = "but_AA";
+            this.but_AA.Size = new System.Drawing.Size(75, 23);
+            this.but_AA.TabIndex = 82;
+            this.but_AA.Text = "altitudeangel";
+            this.but_AA.UseVisualStyleBackColor = true;
+            this.but_AA.Click += new System.EventHandler(this.but_AA_Click);
+            // 
+            // controlSensorsStatus1
+            // 
+            this.controlSensorsStatus1.BackColor = System.Drawing.Color.Transparent;
+            this.controlSensorsStatus1.Location = new System.Drawing.Point(548, 12);
+            this.controlSensorsStatus1.Name = "controlSensorsStatus1";
+            this.controlSensorsStatus1.Size = new System.Drawing.Size(272, 586);
+            this.controlSensorsStatus1.TabIndex = 80;
+            // 
+            // but_followswarm
+            // 
+            this.but_followswarm.Location = new System.Drawing.Point(467, 530);
+            this.but_followswarm.Name = "but_followswarm";
+            this.but_followswarm.Size = new System.Drawing.Size(75, 23);
+            this.but_followswarm.TabIndex = 83;
+            this.but_followswarm.Text = "Follow Swarm";
+            this.but_followswarm.UseVisualStyleBackColor = true;
+            this.but_followswarm.Click += new System.EventHandler(this.but_followswarm_Click);
+            // 
+            // myButton3
+            // 
+            this.myButton3.Location = new System.Drawing.Point(467, 559);
+            this.myButton3.Name = "myButton3";
+            this.myButton3.Size = new System.Drawing.Size(75, 23);
+            this.myButton3.TabIndex = 84;
+            this.myButton3.Text = "Custom DTED";
+            this.myButton3.UseVisualStyleBackColor = true;
+            this.myButton3.Click += new System.EventHandler(this.myButton3_Click);
+            // 
+            // but_GDAL
+            // 
+            this.but_GDAL.Location = new System.Drawing.Point(386, 566);
+            this.but_GDAL.Name = "but_GDAL";
+            this.but_GDAL.Size = new System.Drawing.Size(75, 23);
+            this.but_GDAL.TabIndex = 85;
+            this.but_GDAL.Text = "Custom GDAL";
+            this.but_GDAL.UseVisualStyleBackColor = true;
+            this.but_GDAL.Click += new System.EventHandler(this.but_GDAL_Click);
+            // 
+            // but_sortlogs
+            // 
+            this.but_sortlogs.Location = new System.Drawing.Point(305, 566);
+            this.but_sortlogs.Name = "but_sortlogs";
+            this.but_sortlogs.Size = new System.Drawing.Size(75, 23);
+            this.but_sortlogs.TabIndex = 86;
+            this.but_sortlogs.Text = "ReSort All logs";
+            this.but_sortlogs.UseVisualStyleBackColor = true;
+            this.but_sortlogs.Click += new System.EventHandler(this.but_sortlogs_Click);
+            // 
+            // but_logdlscp
+            // 
+            this.but_logdlscp.Location = new System.Drawing.Point(224, 566);
+            this.but_logdlscp.Name = "but_logdlscp";
+            this.but_logdlscp.Size = new System.Drawing.Size(75, 23);
+            this.but_logdlscp.TabIndex = 87;
+            this.but_logdlscp.Text = "logdownload scp";
+            this.but_logdlscp.UseVisualStyleBackColor = true;
+            this.but_logdlscp.Click += new System.EventHandler(this.but_logdlscp_Click);
+            // 
             // temp
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(598, 572);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+            this.ClientSize = new System.Drawing.Size(830, 595);
+            this.Controls.Add(this.but_logdlscp);
+            this.Controls.Add(this.but_sortlogs);
+            this.Controls.Add(this.but_GDAL);
+            this.Controls.Add(this.myButton3);
+            this.Controls.Add(this.but_followswarm);
+            this.Controls.Add(this.but_AA);
+            this.Controls.Add(this.but_gpsinj);
+            this.Controls.Add(this.controlSensorsStatus1);
+            this.Controls.Add(this.BUT_magfit2);
+            this.Controls.Add(this.myButton2);
+            this.Controls.Add(this.but_optflowcalib);
+            this.Controls.Add(this.but_signkey);
+            this.Controls.Add(this.myButton1);
+            this.Controls.Add(this.but_agemapdata);
+            this.Controls.Add(this.but_gstream);
+            this.Controls.Add(this.myButton_vlc);
+            this.Controls.Add(this.but_trimble);
+            this.Controls.Add(this.BUT_QNH);
+            this.Controls.Add(this.but_reboot);
             this.Controls.Add(this.BUT_fft);
             this.Controls.Add(this.but_injectgps);
             this.Controls.Add(this.but_sitl_comb);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "temp";
             this.Text = "temp";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.temp_FormClosing);
             this.Load += new System.EventHandler(this.temp_Load);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
@@ -768,17 +963,16 @@
         private Controls.MyButton BUT_followleader;
         private Controls.MyButton BUT_driverclean;
         private Controls.MyButton BUT_sorttlogs;
-        private System.Windows.Forms.Timer timer1;
+        
         private Controls.MyButton BUT_movingbase;
         private Controls.MyButton but_getfw;
         private Controls.MyButton but_mavserialport;
-        System.Windows.Forms.Button button3;
+        MissionPlanner.Controls.MyButton button3;
         private Controls.MyButton BUT_shptopoly;
         private Controls.MyButton but_gimbaltest;
         private Controls.MyButton but_maplogs;
         private Controls.MyButton butlogindex;
         private Controls.MyButton but_structtest;
-        private Controls.MyButton but_rtspurl;
         private Controls.MyButton but_armandtakeoff;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label label17;
@@ -803,12 +997,30 @@
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.Label label23;
-        private System.Windows.Forms.Label label22;
         private System.Windows.Forms.Label label21;
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.Label label19;
         private Controls.MyButton but_sitl_comb;
         private Controls.MyButton but_injectgps;
         private Controls.MyButton BUT_fft;
+        private Controls.MyButton but_reboot;
+        private Controls.MyButton BUT_QNH;
+        private Controls.MyButton but_trimble;
+        private Controls.MyButton myButton_vlc;
+        private Controls.MyButton but_gstream;
+        private Controls.MyButton but_agemapdata;
+        private Controls.MyButton myButton1;
+        private Controls.MyButton but_signkey;
+        private Controls.MyButton but_optflowcalib;
+        private Controls.MyButton myButton2;
+        private Controls.MyButton BUT_magfit2;
+        private Controls.ControlSensorsStatus controlSensorsStatus1;
+        private Controls.MyButton but_gpsinj;
+        private Controls.MyButton but_AA;
+        private Controls.MyButton but_followswarm;
+        private Controls.MyButton myButton3;
+        private Controls.MyButton but_GDAL;
+        private Controls.MyButton but_sortlogs;
+        private Controls.MyButton but_logdlscp;
     }
 }

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Timers;
 using System.Windows.Forms;
 using log4net;
 using MissionPlanner.Controls;
@@ -14,57 +15,102 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 {
     public partial class ConfigFriendlyParams : UserControl, IActivate
     {
+        string searchfor = "";
+
         private void BUT_Find_Click(object sender, EventArgs e)
         {
-            y = 10;
-
-            var searchfor = "";
-            InputBox.Show("Search For", "Enter a single word to search for", ref searchfor);
-
-            foreach (Control ctl in tableLayoutPanel1.Controls)
+            InputBox.TextChanged += InputBox_TextChanged;
+            if (InputBox.Show("Search For", "Enter a single word to search for", ref searchfor) == DialogResult.OK)
             {
-                if (ctl.GetType() == typeof (RangeControl))
-                {
-                    var rng = (RangeControl) ctl;
-                    if (rng.LabelText.ToLower().Contains(searchfor.ToLower()) ||
-                        rng.DescriptionText.ToLower().Contains(searchfor.ToLower()))
-                    {
-                        ctl.Visible = true;
-                        ctl.Location = new Point(ctl.Location.X, y);
-                        y += ctl.Height;
-                    }
-                    else
-                    {
-                        ctl.Visible = false;
-                    }
-                }
-                else if (ctl.GetType() == typeof (ValuesControl))
-                {
-                    var vctl = (ValuesControl) ctl;
-                    if (vctl.LabelText.ToLower().Contains(searchfor.ToLower()) ||
-                        vctl.DescriptionText.ToLower().Contains(searchfor.ToLower()))
-                    {
-                        ctl.Visible = true;
-                        ctl.Location = new Point(ctl.Location.X, y);
-                        y += ctl.Height;
-                    }
-                    else
-                    {
-                        ctl.Visible = false;
-                    }
-                }
+                filterList(searchfor);
+            }
+            else
+            {
+                filterList("");
             }
         }
 
-        private void chk_advview_CheckedChanged(object sender, EventArgs e)
+        private void InputBox_TextChanged(object sender, EventArgs e)
         {
-            // check for change
-            if (MainV2.Advanced != chk_advview.Checked)
-            {
-                MainV2.config["advancedview"] = chk_advview.Checked.ToString();
-                MainV2.Advanced = chk_advview.Checked;
+            var textbox = sender as TextBox;
 
-                MainV2.View.Reload();
+            searchfor = textbox.Text;
+
+            filterTimer.Elapsed -= FilterTimerOnElapsed;
+            filterTimer.Stop();
+            filterTimer.Interval = 500;
+            filterTimer.Elapsed += FilterTimerOnElapsed;
+            filterTimer.Start();
+        }
+
+        private System.Timers.Timer filterTimer = new System.Timers.Timer();
+
+        private void FilterTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            filterTimer.Stop();
+            Invoke((Action)delegate
+            {
+                filterList(searchfor);
+            });
+        }
+
+        void filterList(string searchfor)
+        {
+            if (searchfor.Length >= 2 || searchfor.Length == 0)
+            {
+                y = 10;
+                tableLayoutPanel1.Enabled = false;
+
+                foreach (Control ctl in tableLayoutPanel1.Controls)
+                {
+                    if (ctl.GetType() == typeof (RangeControl))
+                    {
+                        var rng = (RangeControl) ctl;
+                        if (rng.LabelText.ToLower().Contains(searchfor.ToLower()) ||
+                            rng.DescriptionText.ToLower().Contains(searchfor.ToLower()))
+                        {
+                            ctl.Visible = true;
+                            ctl.Location = new Point(ctl.Location.X, y);
+                            y += ctl.Height;
+                        }
+                        else
+                        {
+                            ctl.Visible = false;
+                        }
+                    }
+                    else if (ctl.GetType() == typeof (ValuesControl))
+                    {
+                        var vctl = (ValuesControl) ctl;
+                        if (vctl.LabelText.ToLower().Contains(searchfor.ToLower()) ||
+                            vctl.DescriptionText.ToLower().Contains(searchfor.ToLower()))
+                        {
+                            ctl.Visible = true;
+                            ctl.Location = new Point(ctl.Location.X, y);
+                            y += ctl.Height;
+                        }
+                        else
+                        {
+                            ctl.Visible = false;
+                        }
+                    }
+                    else if (ctl.GetType() == typeof(MavlinkCheckBoxBitMask))
+                    {
+                        var bctl = (MavlinkCheckBoxBitMask)ctl;
+                        if (bctl.label1.Text.ToLower().Contains(searchfor.ToLower()) ||
+                            bctl.myLabel1.Text.ToLower().Contains(searchfor.ToLower()))
+                        {
+                            ctl.Visible = true;
+                            ctl.Location = new Point(ctl.Location.X, y);
+                            y += ctl.Height;
+                        }
+                        else
+                        {
+                            ctl.Visible = false;
+                        }
+                    }
+                }
+
+                tableLayoutPanel1.Enabled = true;
             }
         }
 
@@ -103,6 +149,8 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
             BUT_rerequestparams.Click += BUT_rerequestparams_Click;
             BUT_writePIDS.Click += BUT_writePIDS_Click;
+
+            ParameterMode = ParameterMode = ParameterMetaDataConstants.Standard;
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -128,16 +176,22 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         protected void BUT_writePIDS_Click(object sender, EventArgs e)
         {
             var errorThrown = false;
-            _params_changed.ForEach(x =>
+
+            var list = _params_changed.Keys.ToList();
+
+            // set enable last
+            list.SortENABLE();
+
+            list.ForEach(x =>
             {
                 try
                 {
-                    MainV2.comPort.setParam(x.Key, float.Parse(x.Value, CultureInfo.InvariantCulture));
+                    MainV2.comPort.setParam(x, float.Parse(_params_changed[x], CultureInfo.InvariantCulture));
                 }
                 catch
                 {
                     errorThrown = true;
-                    CustomMessageBox.Show(string.Format(Strings.ErrorSetValueFailed, x.Key), Strings.ERROR);
+                    CustomMessageBox.Show(string.Format(Strings.ErrorSetValueFailed, x), Strings.ERROR);
                 }
             });
             if (!errorThrown)
@@ -196,10 +250,6 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
         public void Activate()
         {
-            // update status
-            if (MainV2.Advanced)
-                chk_advview.Checked = MainV2.Advanced;
-
             y = 10;
 
             Console.WriteLine("Activate " + DateTime.Now.ToString("ss.fff"));
@@ -347,7 +397,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                         if (items[0].GetType() == typeof (MavlinkCheckBoxBitMask))
                         {
                             ((MavlinkCheckBoxBitMask) items[0]).ValueChanged -= Control_ValueChanged;
-                            ((MavlinkCheckBoxBitMask) items[0]).setup(x.Key, MainV2.comPort.MAV.param);
+                            ((MavlinkCheckBoxBitMask) items[0]).Value = Convert.ToSingle(value);
                             ((MavlinkCheckBoxBitMask) items[0]).ValueChanged += Control_ValueChanged;
                             return;
                         }
@@ -445,7 +495,8 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                             bitmask.setup(x.Key, MainV2.comPort.MAV.param);
 
                             bitmask.myLabel1.Text = displayName;
-                            bitmask.label1.Text = FitDescriptionText(units, description, bitmask.Width - 100);
+                            bitmask.label1.Text = FitDescriptionText(units, description, tableLayoutPanel1.Width-50);
+                            bitmask.Width = tableLayoutPanel1.Width - 50;
 
                             ThemeManager.ApplyThemeTo(bitmask);
 

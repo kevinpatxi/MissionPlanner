@@ -23,9 +23,21 @@ namespace MissionPlanner.Swarm
 
             SwarmInterface = new FollowPath();
 
-            bindingSource1.DataSource = MainV2.Comports;
+            Dictionary<String, MAVState> mavStates = new Dictionary<string, MAVState>();
+
+            foreach (var port in MainV2.Comports)
+            {
+                foreach (var mav in port.MAVlist)
+                {
+                    mavStates.Add(port.BaseStream.PortName + " " + mav.sysid + " " + mav.compid, mav);
+                }
+            }
+
+            bindingSource1.DataSource = mavStates;
 
             CMB_mavs.DataSource = bindingSource1;
+            CMB_mavs.ValueMember = "Value";
+            CMB_mavs.DisplayMember = "Key";
 
             MessageBox.Show("this is beta, use at own risk");
 
@@ -54,14 +66,13 @@ namespace MissionPlanner.Swarm
 
             if (SwarmInterface != null)
             {
-                new System.Threading.Thread(mainloop) { IsBackground = true }.Start();
+                new System.Threading.Thread(mainloop) {IsBackground = true}.Start();
                 BUT_Start.Text = Strings.Stop;
             }
         }
 
         void mainloop()
         {
-
             threadrun = true;
 
             while (threadrun)
@@ -113,7 +124,7 @@ namespace MissionPlanner.Swarm
         {
             if (SwarmInterface != null)
             {
-                SwarmInterface.setLeader(MainV2.comPort);
+                SwarmInterface.setLeader(MainV2.comPort.MAV);
                 BUT_Start.Enabled = true;
             }
         }
@@ -157,7 +168,7 @@ namespace MissionPlanner.Swarm
             // clean up old
             foreach (Control ctl in PNL_status.Controls)
             {
-                if (!MainV2.Comports.Contains((MAVLinkInterface)ctl.Tag))
+                if (!MainV2.Comports.Contains((MAVLinkInterface) ctl.Tag))
                 {
                     ctl.Dispose();
                 }
@@ -172,11 +183,12 @@ namespace MissionPlanner.Swarm
                     if (ctl is Status && ctl.Tag == port)
                     {
                         exists = true;
-                        ((Status)ctl).GPS.Text = port.MAV.cs.gpsstatus >= 3 ? "OK" : "Bad";
-                        ((Status)ctl).Armed.Text = port.MAV.cs.armed.ToString();
-                        ((Status)ctl).Mode.Text = port.MAV.cs.mode;
-                        ((Status)ctl).MAV.Text = port.ToString();
-                        ((Status)ctl).Guided.Text = port.MAV.GuidedMode.x + "," + port.MAV.GuidedMode.y + "," + port.MAV.GuidedMode.z;
+                        ((Status) ctl).GPS.Text = port.MAV.cs.gpsstatus >= 3 ? "OK" : "Bad";
+                        ((Status) ctl).Armed.Text = port.MAV.cs.armed.ToString();
+                        ((Status) ctl).Mode.Text = port.MAV.cs.mode;
+                        ((Status) ctl).MAV.Text = port.ToString();
+                        ((Status) ctl).Guided.Text = port.MAV.GuidedMode.x + "," + port.MAV.GuidedMode.y + "," +
+                                                     port.MAV.GuidedMode.z;
                     }
                 }
 

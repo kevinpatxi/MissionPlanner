@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using log4net;
 using MissionPlanner.Controls.BackstageView;
 
 namespace MissionPlanner.Controls.BackstageView
@@ -16,6 +17,8 @@ namespace MissionPlanner.Controls.BackstageView
     /// </remarks>
     public partial class BackstageView : UserControl, IContainerControl
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private Color _buttonsAreaBgColor = Color.White;
         private Color _buttonsAreaPencilColor = Color.DarkGray;
         private Color _selectedTextColor = Color.White;
@@ -31,6 +34,9 @@ namespace MissionPlanner.Controls.BackstageView
         private List<BackstageViewPage> expanded = new List<BackstageViewPage>();
 
         public BackstageViewPage SelectedPage { get { return _activePage; } }
+
+        public delegate void TrackingEventHandler(string page, string title);
+        public static event TrackingEventHandler Tracking;
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public BackstageViewCollection Pages { get { return _items; } }
@@ -190,24 +196,13 @@ namespace MissionPlanner.Controls.BackstageView
         /// <summary>
         /// Add a page (tab) to this backstage view. Will be added at the end/bottom
         /// </summary>
-        public BackstageViewPage AddPage(UserControl userControl, string headerText, BackstageViewPage Parent, bool advanced)
+        public BackstageViewPage AddPage(Type userControl, string headerText, BackstageViewPage Parent, bool advanced)
         {
-            var page = new BackstageViewPage(userControl, headerText, Parent, advanced)
-                           {
-                               Page =
-                                   {
-                                       //Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top,
-                                       Location = new Point(0, 0),
-                                       Dock = DockStyle.Fill,
-                                       Visible = false,
-                                   }
-                           };
+            var page = new BackstageViewPage(userControl, headerText, Parent, advanced);
 
             _items.Add(page);
 
-            page.Page.Visible = false;
-
-            this.pnlPages.Controls.Add(page.Page);
+            DrawMenu(_activePage, false);
 
             return page;
         }
@@ -262,6 +257,7 @@ namespace MissionPlanner.Controls.BackstageView
             lnkButton.DoubleClick += lnkButton_DoubleClick;
 
             ButtonTopPos += lnkButton.Height;
+            pnlMenu.Invalidate();
         }
 
         public void DrawMenu(BackstageViewPage CurrentPage, bool force = false)
@@ -454,7 +450,7 @@ namespace MissionPlanner.Controls.BackstageView
                 return;
             }
 
-            MissionPlanner.Utilities.Tracking.AddPage(associatedPage.Page.GetType().ToString(), associatedPage.LinkText);
+            Tracking?.Invoke(associatedPage.Page.GetType().ToString(), associatedPage.LinkText);
 
             this.SuspendLayout();
             associatedPage.Page.SuspendLayout();
@@ -464,17 +460,21 @@ namespace MissionPlanner.Controls.BackstageView
             // Deactivate old page
             if (_activePage != null && _activePage.Page is IDeactivate)
             {
-                ((IDeactivate)(_activePage.Page)).Deactivate();
+                try
+                {
+                    ((IDeactivate) (_activePage.Page)).Deactivate();
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex);
+                }
             }
 
             // deactivate the old page - obsolete way of notifying activation
             //_activePage.Page.Close();
 
-            foreach (BackstageViewPage p in Pages)
-            {
-                if (p.Page.Visible != false)
-                    p.Page.Visible = false;
-            }
+            if (_activePage != null && _activePage.Page != null)
+                _activePage.Page.Visible = false;
 
             try
             { // if the button was on an expanded tab. when we leave it no longer exits
@@ -484,12 +484,18 @@ namespace MissionPlanner.Controls.BackstageView
                     oldButton.IsSelected = false;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
 
             associatedPage.Page.ResumeLayout(false);
             this.ResumeLayout(false);
             // show it
             associatedPage.Page.Visible = true;
+
+            if (!pnlPages.Controls.Contains(associatedPage.Page))
+                this.pnlPages.Controls.Add(associatedPage.Page);
 
             // new way of notifying activation. Goal is to get rid of BackStageViewContentPanel
             // so plain old user controls can be added
@@ -503,9 +509,17 @@ namespace MissionPlanner.Controls.BackstageView
                 var newButton = this.pnlMenu.Controls.OfType<BackstageViewButton>().Single(b => b.Tag == associatedPage);
                 newButton.IsSelected = true;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
 
             _activePage = associatedPage;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
         }
 
         public void Close()
@@ -515,17 +529,39 @@ namespace MissionPlanner.Controls.BackstageView
                 if (popoutPage != null && popoutPage == page)
                     continue;
 
-                if (((BackstageViewPage)page).Page == null)
+                if (!((BackstageViewPage)page).isPageCreated)
                     continue;
 
                 if (((BackstageViewPage)page).Page is IDeactivate)
                 {
-                    ((IDeactivate)((BackstageViewPage)(page)).Page).Deactivate();
-                    ((BackstageViewPage)page).Page.Dispose();
+                    try
+                    {
+                        ((IDeactivate) ((BackstageViewPage) (page)).Page).Deactivate();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                    }
+
+                    try
+                    {
+                        ((BackstageViewPage)page).Page.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                    }
                 }
                 else
                 {
-                    ((BackstageViewPage)page).Page.Dispose();
+                    try
+                    {
+                        ((BackstageViewPage)page).Page.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(ex);
+                    }
                 }
             }
         }

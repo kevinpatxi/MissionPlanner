@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Timers;
 using System.Windows.Forms;
 using BrightIdeasSoftware;
 using log4net;
@@ -14,7 +16,7 @@ using MissionPlanner.Utilities;
 
 namespace MissionPlanner.GCSViews.ConfigurationView
 {
-    public partial class ConfigRawParamsTree : UserControl, IActivate
+    public partial class ConfigRawParamsTree : UserControl, IActivate, IDeactivate
     {
         // from http://stackoverflow.com/questions/2512781/winforms-big-paragraph-tooltip/2512895#2512895
         private const int maximumSingleLineTooltipLength = 50;
@@ -40,6 +42,14 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
             SuspendLayout();
 
+            foreach (ColumnHeader col in Params.Columns)
+            {
+                if (!String.IsNullOrEmpty(Settings.Instance["rawtree_" + col.Text + "_width"]))
+                {
+                    col.Width = Settings.Instance.GetInt32("rawtree_" + col.Text + "_width");
+                }
+            }
+
             processToScreen();
 
             ResumeLayout();
@@ -52,6 +62,16 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             ThreadPool.QueueUserWorkItem(updatedefaultlist);
 
             startup = false;
+
+            txt_search.Focus();
+        }
+
+        public void Deactivate()
+        {
+            foreach (ColumnHeader col in Params.Columns)
+            {
+                Settings.Instance["rawtree_" + col.Text + "_width"] = col.Width.ToString();
+            }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -59,12 +79,6 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (keyData == (Keys.Control | Keys.S))
             {
                 BUT_writePIDS_Click(null, null);
-                return true;
-            }
-
-            if (keyData == (Keys.Control | Keys.F))
-            {
-                BUT_find_Click(null, null);
                 return true;
             }
 
@@ -150,7 +164,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                         {
                             if (item.Value != null)
                             {
-                                var value = float.Parse(item.Value);
+                                var value = double.Parse(item.Value);
 
                                 data[item.paramname] = value;
                             }
@@ -158,7 +172,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
                         if (row.Value != null)
                         {
-                            var value = float.Parse(row.Value);
+                            var value = double.Parse(row.Value);
 
                             data[row.paramname] = value;
                         }
@@ -171,9 +185,19 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
         private void BUT_writePIDS_Click(object sender, EventArgs e)
         {
-            var temp = (Hashtable) _changes.Clone();
+            if (Common.MessageShowAgain("Write Raw Params Tree", "Are you Sure?") != DialogResult.OK)
+                return;
 
-            foreach (string value in temp.Keys)
+            // sort with enable at the bottom - this ensures params are set before the function is disabled
+            var temp = new List<string>();
+            foreach (var item in _changes.Keys)
+            {
+                temp.Add((string)item);
+            }
+
+            temp.SortENABLE();
+
+            foreach (string value in temp)
             {
                 try
                 {
@@ -192,7 +216,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
         private void BUT_compare_Click(object sender, EventArgs e)
         {
-            var param2 = new Hashtable();
+            var param2 = new Dictionary<string, double>();
 
             using (var ofd = new OpenFileDialog
             {
@@ -222,7 +246,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (!MainV2.comPort.BaseStream.IsOpen)
                 return;
 
-            if (DialogResult.OK ==
+            if (!MainV2.comPort.MAV.cs.armed || DialogResult.OK ==
                 CustomMessageBox.Show(Strings.WarningUpdateParamList, Strings.ERROR, MessageBoxButtons.OKCancel))
             {
                 ((Control) sender).Enabled = false;
@@ -324,7 +348,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 data.root = split[0];
 
                 data.paramname = value;
-                data.Value = ((float) MainV2.comPort.MAV.param[value]).ToString();
+                data.Value = MainV2.comPort.MAV.param[value].ToString();
                 try
                 {
                     var metaDataDescription = ParameterMetaDataRepository.GetParameterMetaData(value,
@@ -397,23 +421,51 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             }
         }
 
-        private void BUT_find_Click(object sender, EventArgs e)
+        void filterList(string searchfor)
         {
-            var searchfor = "";
-            InputBox.Show("Search For", "Enter a single word to search for", ref searchfor);
+            if (searchfor.Length >= 2 || searchfor.Length == 0)
+            {
+                var expanded = Params.ExpandedObjects.OfType<object>().Where((o, i) =>
+                {
+                    var count = Params.VirtualListDataSource.GetObjectCount();
+                    for (int a = 0; a < count; a++)
+                    {
+                        var obj = Params.VirtualListDataSource.GetNthObject(a);
+                        if (obj == o)
+                            return true;
+                    }
 
-            Params.UseFiltering = true;
-            Params.ModelFilter = TextMatchFilter.Regex(Params, searchfor.ToLower());
-            Params.DefaultRenderer = new HighlightTextRenderer((TextMatchFilter) Params.ModelFilter);
+                    return false;
+                }) .ToArray();
+
+                Params.Visible = false;
+                Params.UseFiltering = false;
+                Params.ExpandAll();
+                Params.ModelFilter = TextMatchFilter.Regex(Params, searchfor.ToLower());
+                Params.DefaultRenderer = new HighlightTextRenderer((TextMatchFilter) Params.ModelFilter);
+                Params.UseFiltering = true;
+
+                if (Params.Items.Count > 0)
+                {
+                    if(searchfor.Length == 0)
+                        Params.CollapseAll();
+
+                    foreach (var row in expanded)
+                    {
+                        Params.Expand(row);
+                    }
+                }
+                Params.Visible = true;
+            }
         }
 
         private void BUT_paramfileload_Click(object sender, EventArgs e)
         {
-            var filepath = Application.StartupPath + Path.DirectorySeparatorChar + CMB_paramfiles.Text;
+            var filepath = Settings.GetUserDataDirectory() + CMB_paramfiles.Text;
 
             try
             {
-                var data = GitHubContent.GetFileContent("diydrones", "ardupilot",
+                var data = GitHubContent.GetFileContent("ardupilot", "ardupilot",
                     ((GitHubContent.FileInfo) CMB_paramfiles.SelectedValue).path);
 
                 File.WriteAllBytes(filepath, data);
@@ -432,7 +484,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
                 // no activate the user needs to click write.
                 //this.Activate();
-            }
+            } 
             catch (Exception ex)
             {
                 CustomMessageBox.Show("Failed to load file.\n" + ex);
@@ -476,7 +528,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 {
                     MainV2.comPort.setParam(new[] {"FORMAT_VERSION", "SYSID_SW_MREV"}, 0);
                     Thread.Sleep(1000);
-                    MainV2.comPort.doReboot(false);
+                    MainV2.comPort.doReboot(false, true);
                     MainV2.comPort.BaseStream.Close();
 
                     CustomMessageBox.Show(
@@ -568,6 +620,40 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             public string root;
             public string unit;
             public string Value;
+        }
+
+        private System.Timers.Timer filterTimer = new System.Timers.Timer();
+
+        private void txt_search_TextChanged(object sender, EventArgs e)
+        {
+            filterTimer.Elapsed -= FilterTimerOnElapsed;
+            filterTimer.Stop();
+            filterTimer.Interval = 500;
+            filterTimer.Elapsed += FilterTimerOnElapsed;
+            filterTimer.Start();
+        }
+
+        private void FilterTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            filterTimer.Stop();
+            Invoke((Action)delegate
+            {
+                filterList(txt_search.Text);
+            });
+        }
+
+        private void Params_CellClick(object sender, CellClickEventArgs e)
+        {
+            // Only process the Description column
+            if (e.RowIndex == -1 || startup || e.ColumnIndex != 4)
+                return;
+
+            try
+            {
+                string descStr = e.SubItem.ModelValue.ToString();
+                ConfigRawParams.CheckForUrlAndLaunchInBrowser(descStr);
+            }
+            catch { }
         }
     }
 }

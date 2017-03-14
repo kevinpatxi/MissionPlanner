@@ -9,9 +9,6 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
-using com.drew.imaging.jpg;
-using com.drew.metadata;
-using com.drew.metadata.exif;
 using GMap.NET;
 using GMap.NET.WindowsForms;
 using GMap.NET.WindowsForms.Markers;
@@ -26,8 +23,8 @@ namespace MissionPlanner
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        const float rad2deg = (float)(180 / Math.PI);
-        const float deg2rad = (float)(1.0 / rad2deg);
+        const double rad2deg = (180 / Math.PI);
+        const double deg2rad = (1.0 / rad2deg);
 
         GMapOverlay layerpolygons;
         GMapPolygon wppoly;
@@ -334,35 +331,40 @@ namespace MissionPlanner
                     }
                     try
                     {
-                        if (TXT_fovH != "")
+                        if (chk_footprints.Checked)
                         {
-                            double fovh = double.Parse(TXT_fovH);
-                            double fovv = double.Parse(TXT_fovV);
-
-                            double startangle = 0;
-
-                            if (!RAD_camdirectionland.Checked)
+                            if (TXT_fovH != "")
                             {
-                                startangle = 90;
-                            }
+                                double fovh = double.Parse(TXT_fovH);
+                                double fovv = double.Parse(TXT_fovV);
 
-                            double angle1 = startangle - (Math.Tan((fovv / 2.0) / (fovh / 2.0)) * rad2deg);
-                            double dist1 = Math.Sqrt(Math.Pow(fovh / 2.0, 2) + Math.Pow(fovv / 2.0, 2));
+                                double startangle = 0;
 
-                            double bearing = (double)NUM_angle.Value;// (prevpoint.GetBearing(item) + 360.0) % 360;
+                                if (!RAD_camdirectionland.Checked)
+                                {
+                                    startangle = 90;
+                                }
 
-                            List<PointLatLng> footprint = new List<PointLatLng>();
-                            footprint.Add(item.newpos(bearing + angle1, dist1));
-                            footprint.Add(item.newpos(bearing + 180 - angle1, dist1));
-                            footprint.Add(item.newpos(bearing + 180 + angle1, dist1));
-                            footprint.Add(item.newpos(bearing - angle1, dist1));
+                                double angle1 = startangle - (Math.Tan((fovv/2.0)/(fovh/2.0))*rad2deg);
+                                double dist1 = Math.Sqrt(Math.Pow(fovh/2.0, 2) + Math.Pow(fovv/2.0, 2));
 
-                            GMapPolygon poly = new GMapPolygon(footprint, a.ToString());
-                            poly.Stroke.Color = Color.FromArgb(250 - ((a * 5) % 240), 250 - ((a * 3) % 240), 250 - ((a * 9) % 240));
-                            poly.Stroke.Width = 1;
-                            poly.Fill = new SolidBrush(Color.FromArgb(40, Color.Purple));
-                            if (chk_footprints.Checked)
+                                double bearing = (double) NUM_angle.Value;
+                                    // (prevpoint.GetBearing(item) + 360.0) % 360;
+
+                                List<PointLatLng> footprint = new List<PointLatLng>();
+                                footprint.Add(item.newpos(bearing + angle1, dist1));
+                                footprint.Add(item.newpos(bearing + 180 - angle1, dist1));
+                                footprint.Add(item.newpos(bearing + 180 + angle1, dist1));
+                                footprint.Add(item.newpos(bearing - angle1, dist1));
+
+                                GMapPolygon poly = new GMapPolygon(footprint, a.ToString());
+                                poly.Stroke.Color = Color.FromArgb(250 - ((a*5)%240), 250 - ((a*3)%240),
+                                    250 - ((a*9)%240));
+                                poly.Stroke.Width = 1;
+                                poly.Fill = new SolidBrush(Color.FromArgb(40, Color.Purple));
+
                                 layerpolygons.Polygons.Add(poly);
+                            }
                         }
                     }
                     catch { }
@@ -555,15 +557,15 @@ namespace MissionPlanner
             doCalc();
         }
 
-        private void xmlcamera(bool write, string filename = "cameras.xml")
+        private void xmlcamera(bool write, string filename)
         {
-            bool exists = File.Exists(Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar + filename);
+            bool exists = File.Exists(filename);
 
             if (write || !exists)
             {
                 try
                 {
-                    XmlTextWriter xmlwriter = new XmlTextWriter(Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar + filename, Encoding.ASCII);
+                    XmlTextWriter xmlwriter = new XmlTextWriter(filename, Encoding.ASCII);
                     xmlwriter.Formatting = Formatting.Indented;
 
                     xmlwriter.WriteStartDocument();
@@ -600,7 +602,7 @@ namespace MissionPlanner
             {
                 try
                 {
-                    using (XmlTextReader xmlreader = new XmlTextReader(Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar + filename))
+                    using (XmlTextReader xmlreader = new XmlTextReader(filename))
                     {
                         while (xmlreader.Read())
                         {
@@ -678,7 +680,7 @@ namespace MissionPlanner
         {
             try
             {
-                using (XmlTextReader xmlreader = new XmlTextReader(Path.GetDirectoryName(Application.ExecutablePath) + Path.DirectorySeparatorChar + filename))
+                using (XmlTextReader xmlreader = new XmlTextReader(filename))
                 {
                     while (xmlreader.Read())
                     {
@@ -729,8 +731,6 @@ namespace MissionPlanner
                                 case "xml":
                                     break;
                                 default:
-                                    if (xmlreader.Name == "") // line feeds
-                                        break;
                                     break;
                             }
                         }
@@ -814,9 +814,9 @@ namespace MissionPlanner
        
         private void GridUI_Load(object sender, EventArgs e)
         {
-            xmlcamera(false, "camerasBuiltin.xml");
+            xmlcamera(false, Settings.GetRunningDirectory() + "camerasBuiltin.xml");
 
-            xmlcamera(false);
+            xmlcamera(false, Settings.GetUserDataDirectory() + "cameras.xml");
 
             xmlaircraft();
 

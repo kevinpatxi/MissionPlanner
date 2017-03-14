@@ -14,19 +14,24 @@
             this.SubMainLeft = new System.Windows.Forms.SplitContainer();
             this.hud1 = new MissionPlanner.Controls.HUD();
             this.contextMenuStripHud = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.videoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.recordHudToAVIToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopRecordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setMJPEGSourceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.startCameraToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setAspectRatioToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.userItemsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.russianHudToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.swapWithMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bindingSourceHud = new System.Windows.Forms.BindingSource(this.components);
             this.tabControlactions = new System.Windows.Forms.TabControl();
             this.contextMenuStripactionstab = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.dropOutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.customizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tabQuick = new System.Windows.Forms.TabPage();
             this.tableLayoutPanelQuick = new System.Windows.Forms.TableLayoutPanel();
             this.quickView6 = new MissionPlanner.Controls.QuickView();
+            this.contextMenuStripQuickView = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.setViewCountToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bindingSourceQuickTab = new System.Windows.Forms.BindingSource(this.components);
             this.quickView5 = new MissionPlanner.Controls.QuickView();
             this.quickView4 = new MissionPlanner.Controls.QuickView();
@@ -34,6 +39,8 @@
             this.quickView2 = new MissionPlanner.Controls.QuickView();
             this.quickView1 = new MissionPlanner.Controls.QuickView();
             this.tabActions = new System.Windows.Forms.TabPage();
+            this.modifyandSetLoiterRad = new MissionPlanner.Controls.ModifyandSet();
+            this.BUT_abortland = new MissionPlanner.Controls.MyButton();
             this.BUT_resumemis = new MissionPlanner.Controls.MyButton();
             this.CMB_mountmode = new System.Windows.Forms.ComboBox();
             this.BUT_mountmode = new MissionPlanner.Controls.MyButton();
@@ -58,6 +65,8 @@
             this.myButton1 = new MissionPlanner.Controls.MyButton();
             this.myButton2 = new MissionPlanner.Controls.MyButton();
             this.myButton3 = new MissionPlanner.Controls.MyButton();
+            this.tabPagePreFlight = new System.Windows.Forms.TabPage();
+            this.checkListControl1 = new MissionPlanner.Controls.PreFlight.CheckListControl();
             this.tabGauges = new System.Windows.Forms.TabPage();
             this.Gvspeed = new AGaugeApp.AGauge();
             this.bindingSourceGaugesTab = new System.Windows.Forms.BindingSource(this.components);
@@ -74,6 +83,9 @@
             this.servoOptions5 = new MissionPlanner.Controls.ServoOptions();
             this.servoOptions6 = new MissionPlanner.Controls.ServoOptions();
             this.servoOptions7 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions8 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions9 = new MissionPlanner.Controls.ServoOptions();
+            this.servoOptions10 = new MissionPlanner.Controls.ServoOptions();
             this.tabTLogs = new System.Windows.Forms.TabPage();
             this.tableLayoutPaneltlogs = new System.Windows.Forms.TableLayoutPanel();
             this.BUT_loadtelem = new MissionPlanner.Controls.MyButton();
@@ -118,11 +130,16 @@
             this.addPoiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pointCameraHereToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.PointCameraCoordsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.triggerCameraToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.flightPlannerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.setHomeHereToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.takeOffToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.onOffCameraOverlapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.altitudeAngelSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.but_disablejoystick = new MissionPlanner.Controls.MyButton();
             this.distanceBar1 = new MissionPlanner.Controls.DistanceBar();
             this.windDir1 = new MissionPlanner.Controls.WindDir();
             this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
@@ -162,9 +179,11 @@
             this.contextMenuStripactionstab.SuspendLayout();
             this.tabQuick.SuspendLayout();
             this.tableLayoutPanelQuick.SuspendLayout();
+            this.contextMenuStripQuickView.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceQuickTab)).BeginInit();
             this.tabActions.SuspendLayout();
             this.tabActionsSimple.SuspendLayout();
+            this.tabPagePreFlight.SuspendLayout();
             this.tabGauges.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceGaugesTab)).BeginInit();
             this.tabServo.SuspendLayout();
@@ -225,6 +244,7 @@
             this.hud1.BackColor = System.Drawing.Color.Black;
             this.hud1.batterylevel = 0F;
             this.hud1.batteryremaining = 0F;
+            this.hud1.bgimage = null;
             this.hud1.connected = false;
             this.hud1.ContextMenuStrip = this.contextMenuStripHud;
             this.hud1.current = 0F;
@@ -236,9 +256,12 @@
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("current", this.bindingSourceHud, "current", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("datetime", this.bindingSourceHud, "datetime", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("disttowp", this.bindingSourceHud, "wp_dist", true));
+            this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("ekfstatus", this.bindingSourceHud, "ekfstatus", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("failsafe", this.bindingSourceHud, "failsafe", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("gpsfix", this.bindingSourceHud, "gpsstatus", true));
+            this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("gpsfix2", this.bindingSourceHud, "gpsstatus2", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("gpshdop", this.bindingSourceHud, "gpshdop", true));
+            this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("gpshdop2", this.bindingSourceHud, "gpshdop2", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("groundalt", this.bindingSourceHud, "HomeAlt", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("groundcourse", this.bindingSourceHud, "groundcourse", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("groundspeed", this.bindingSourceHud, "groundspeed", true));
@@ -257,19 +280,25 @@
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("targetspeed", this.bindingSourceHud, "targetairspeed", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("turnrate", this.bindingSourceHud, "turnrate", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("verticalspeed", this.bindingSourceHud, "verticalspeed", true));
+            this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("vibex", this.bindingSourceHud, "vibex", true));
+            this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("vibey", this.bindingSourceHud, "vibey", true));
+            this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("vibez", this.bindingSourceHud, "vibez", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("wpno", this.bindingSourceHud, "wpno", true));
             this.hud1.DataBindings.Add(new System.Windows.Forms.Binding("xtrack_error", this.bindingSourceHud, "xtrack_error", true));
             this.hud1.datetime = new System.DateTime(((long)(0)));
             this.hud1.disttowp = 0F;
             resources.ApplyResources(this.hud1, "hud1");
+            this.hud1.ekfstatus = 0F;
             this.hud1.failsafe = false;
             this.hud1.gpsfix = 0F;
+            this.hud1.gpsfix2 = 0F;
             this.hud1.gpshdop = 0F;
+            this.hud1.gpshdop2 = 0F;
             this.hud1.groundalt = 0F;
             this.hud1.groundcourse = 0F;
             this.hud1.groundspeed = 0F;
             this.hud1.heading = 0F;
-            this.hud1.hudcolor = System.Drawing.Color.White;
+            this.hud1.hudcolor = System.Drawing.Color.LightGray;
             this.hud1.linkqualitygcs = 0F;
             this.hud1.lowairspeed = false;
             this.hud1.lowgroundspeed = false;
@@ -280,7 +309,6 @@
             this.hud1.Name = "hud1";
             this.hud1.navpitch = 0F;
             this.hud1.navroll = 0F;
-            this.hud1.opengl = true;
             this.hud1.pitch = 0F;
             this.hud1.roll = 0F;
             this.hud1.Russian = false;
@@ -290,25 +318,38 @@
             this.hud1.targetheading = 0F;
             this.hud1.targetspeed = 0F;
             this.hud1.turnrate = 0F;
-            this.hud1.UseOpenGL = true;
             this.hud1.verticalspeed = 0F;
+            this.hud1.vibex = 0F;
+            this.hud1.vibey = 0F;
+            this.hud1.vibez = 0F;
             this.hud1.VSync = false;
             this.hud1.wpno = 0;
             this.hud1.xtrack_error = 0F;
+            this.hud1.ekfclick += new System.EventHandler(this.hud1_ekfclick);
+            this.hud1.vibeclick += new System.EventHandler(this.hud1_vibeclick);
             this.hud1.DoubleClick += new System.EventHandler(this.hud1_DoubleClick);
             this.hud1.Resize += new System.EventHandler(this.hud1_Resize);
             // 
             // contextMenuStripHud
             // 
             this.contextMenuStripHud.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.videoToolStripMenuItem,
+            this.setAspectRatioToolStripMenuItem,
+            this.userItemsToolStripMenuItem,
+            this.russianHudToolStripMenuItem,
+            this.swapWithMapToolStripMenuItem});
+            this.contextMenuStripHud.Name = "contextMenuStrip2";
+            resources.ApplyResources(this.contextMenuStripHud, "contextMenuStripHud");
+            // 
+            // videoToolStripMenuItem
+            // 
+            this.videoToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.recordHudToAVIToolStripMenuItem,
             this.stopRecordToolStripMenuItem,
             this.setMJPEGSourceToolStripMenuItem,
-            this.setAspectRatioToolStripMenuItem,
-            this.userItemsToolStripMenuItem,
-            this.russianHudToolStripMenuItem});
-            this.contextMenuStripHud.Name = "contextMenuStrip2";
-            resources.ApplyResources(this.contextMenuStripHud, "contextMenuStripHud");
+            this.startCameraToolStripMenuItem});
+            this.videoToolStripMenuItem.Name = "videoToolStripMenuItem";
+            resources.ApplyResources(this.videoToolStripMenuItem, "videoToolStripMenuItem");
             // 
             // recordHudToAVIToolStripMenuItem
             // 
@@ -328,6 +369,12 @@
             resources.ApplyResources(this.setMJPEGSourceToolStripMenuItem, "setMJPEGSourceToolStripMenuItem");
             this.setMJPEGSourceToolStripMenuItem.Click += new System.EventHandler(this.setMJPEGSourceToolStripMenuItem_Click);
             // 
+            // startCameraToolStripMenuItem
+            // 
+            this.startCameraToolStripMenuItem.Name = "startCameraToolStripMenuItem";
+            resources.ApplyResources(this.startCameraToolStripMenuItem, "startCameraToolStripMenuItem");
+            this.startCameraToolStripMenuItem.Click += new System.EventHandler(this.startCameraToolStripMenuItem_Click);
+            // 
             // setAspectRatioToolStripMenuItem
             // 
             this.setAspectRatioToolStripMenuItem.Name = "setAspectRatioToolStripMenuItem";
@@ -346,6 +393,12 @@
             resources.ApplyResources(this.russianHudToolStripMenuItem, "russianHudToolStripMenuItem");
             this.russianHudToolStripMenuItem.Click += new System.EventHandler(this.russianHudToolStripMenuItem_Click);
             // 
+            // swapWithMapToolStripMenuItem
+            // 
+            this.swapWithMapToolStripMenuItem.Name = "swapWithMapToolStripMenuItem";
+            resources.ApplyResources(this.swapWithMapToolStripMenuItem, "swapWithMapToolStripMenuItem");
+            this.swapWithMapToolStripMenuItem.Click += new System.EventHandler(this.swapWithMapToolStripMenuItem_Click);
+            // 
             // bindingSourceHud
             // 
             this.bindingSourceHud.DataSource = typeof(MissionPlanner.CurrentState);
@@ -356,6 +409,7 @@
             this.tabControlactions.Controls.Add(this.tabQuick);
             this.tabControlactions.Controls.Add(this.tabActions);
             this.tabControlactions.Controls.Add(this.tabActionsSimple);
+            this.tabControlactions.Controls.Add(this.tabPagePreFlight);
             this.tabControlactions.Controls.Add(this.tabGauges);
             this.tabControlactions.Controls.Add(this.tabStatus);
             this.tabControlactions.Controls.Add(this.tabServo);
@@ -372,15 +426,15 @@
             // contextMenuStripactionstab
             // 
             this.contextMenuStripactionstab.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.dropOutToolStripMenuItem});
+            this.customizeToolStripMenuItem});
             this.contextMenuStripactionstab.Name = "contextMenuStripactionstab";
             resources.ApplyResources(this.contextMenuStripactionstab, "contextMenuStripactionstab");
             // 
-            // dropOutToolStripMenuItem
+            // customizeToolStripMenuItem
             // 
-            this.dropOutToolStripMenuItem.Name = "dropOutToolStripMenuItem";
-            resources.ApplyResources(this.dropOutToolStripMenuItem, "dropOutToolStripMenuItem");
-            this.dropOutToolStripMenuItem.Click += new System.EventHandler(this.dropOutToolStripMenuItem_Click);
+            this.customizeToolStripMenuItem.Name = "customizeToolStripMenuItem";
+            resources.ApplyResources(this.customizeToolStripMenuItem, "customizeToolStripMenuItem");
+            this.customizeToolStripMenuItem.Click += new System.EventHandler(this.customizeToolStripMenuItem_Click);
             // 
             // tabQuick
             // 
@@ -403,6 +457,7 @@
             // 
             // quickView6
             // 
+            this.quickView6.ContextMenuStrip = this.contextMenuStripQuickView;
             this.quickView6.DataBindings.Add(new System.Windows.Forms.Binding("number", this.bindingSourceQuickTab, "DistToHome", true));
             this.quickView6.desc = "DistToMAV";
             resources.ApplyResources(this.quickView6, "quickView6");
@@ -412,12 +467,26 @@
             this.quickView6.numberformat = "0.00";
             this.quickView6.DoubleClick += new System.EventHandler(this.quickView_DoubleClick);
             // 
+            // contextMenuStripQuickView
+            // 
+            this.contextMenuStripQuickView.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.setViewCountToolStripMenuItem});
+            this.contextMenuStripQuickView.Name = "contextMenuStripQuickView";
+            resources.ApplyResources(this.contextMenuStripQuickView, "contextMenuStripQuickView");
+            // 
+            // setViewCountToolStripMenuItem
+            // 
+            this.setViewCountToolStripMenuItem.Name = "setViewCountToolStripMenuItem";
+            resources.ApplyResources(this.setViewCountToolStripMenuItem, "setViewCountToolStripMenuItem");
+            this.setViewCountToolStripMenuItem.Click += new System.EventHandler(this.setViewCountToolStripMenuItem_Click);
+            // 
             // bindingSourceQuickTab
             // 
             this.bindingSourceQuickTab.DataSource = typeof(MissionPlanner.CurrentState);
             // 
             // quickView5
             // 
+            this.quickView5.ContextMenuStrip = this.contextMenuStripQuickView;
             this.quickView5.DataBindings.Add(new System.Windows.Forms.Binding("number", this.bindingSourceQuickTab, "verticalspeed", true));
             this.quickView5.desc = "verticalspeed";
             resources.ApplyResources(this.quickView5, "quickView5");
@@ -429,6 +498,7 @@
             // 
             // quickView4
             // 
+            this.quickView4.ContextMenuStrip = this.contextMenuStripQuickView;
             this.quickView4.DataBindings.Add(new System.Windows.Forms.Binding("number", this.bindingSourceQuickTab, "yaw", true));
             this.quickView4.desc = "yaw";
             resources.ApplyResources(this.quickView4, "quickView4");
@@ -440,6 +510,7 @@
             // 
             // quickView3
             // 
+            this.quickView3.ContextMenuStrip = this.contextMenuStripQuickView;
             this.quickView3.DataBindings.Add(new System.Windows.Forms.Binding("number", this.bindingSourceQuickTab, "wp_dist", true));
             this.quickView3.desc = "wp_dist";
             resources.ApplyResources(this.quickView3, "quickView3");
@@ -451,17 +522,19 @@
             // 
             // quickView2
             // 
+            this.quickView2.ContextMenuStrip = this.contextMenuStripQuickView;
             this.quickView2.DataBindings.Add(new System.Windows.Forms.Binding("number", this.bindingSourceQuickTab, "groundspeed", true));
             this.quickView2.desc = "groundspeed";
             resources.ApplyResources(this.quickView2, "quickView2");
             this.quickView2.Name = "quickView2";
-            this.quickView2.number = 9999.99D;
+            this.quickView2.number = 0D;
             this.quickView2.numberColor = System.Drawing.Color.FromArgb(((int)(((byte)(254)))), ((int)(((byte)(132)))), ((int)(((byte)(46)))));
             this.quickView2.numberformat = "0.00";
             this.quickView2.DoubleClick += new System.EventHandler(this.quickView_DoubleClick);
             // 
             // quickView1
             // 
+            this.quickView1.ContextMenuStrip = this.contextMenuStripQuickView;
             this.quickView1.DataBindings.Add(new System.Windows.Forms.Binding("number", this.bindingSourceQuickTab, "alt", true));
             this.quickView1.desc = "alt";
             resources.ApplyResources(this.quickView1, "quickView1");
@@ -474,6 +547,8 @@
             // 
             // tabActions
             // 
+            this.tabActions.Controls.Add(this.modifyandSetLoiterRad);
+            this.tabActions.Controls.Add(this.BUT_abortland);
             this.tabActions.Controls.Add(this.BUT_resumemis);
             this.tabActions.Controls.Add(this.CMB_mountmode);
             this.tabActions.Controls.Add(this.BUT_mountmode);
@@ -498,8 +573,44 @@
             this.tabActions.Name = "tabActions";
             this.tabActions.UseVisualStyleBackColor = true;
             // 
+            // modifyandSetLoiterRad
+            // 
+            this.modifyandSetLoiterRad.ButtonText = "Set Loiter Rad";
+            resources.ApplyResources(this.modifyandSetLoiterRad, "modifyandSetLoiterRad");
+            this.modifyandSetLoiterRad.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.modifyandSetLoiterRad.Minimum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            -2147483648});
+            this.modifyandSetLoiterRad.Name = "modifyandSetLoiterRad";
+            this.modifyandSetLoiterRad.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.modifyandSetLoiterRad.Click += new System.EventHandler(this.modifyandSetLoiterRad_Click);
+            // 
+            // BUT_abortland
+            // 
+            this.BUT_abortland.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_abortland.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_abortland.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.BUT_abortland, "BUT_abortland");
+            this.BUT_abortland.Name = "BUT_abortland";
+            this.toolTip1.SetToolTip(this.BUT_abortland, resources.GetString("BUT_abortland.ToolTip"));
+            this.BUT_abortland.UseVisualStyleBackColor = true;
+            this.BUT_abortland.Click += new System.EventHandler(this.BUT_abortland_Click);
+            // 
             // BUT_resumemis
             // 
+            this.BUT_resumemis.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_resumemis.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_resumemis.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_resumemis, "BUT_resumemis");
             this.BUT_resumemis.Name = "BUT_resumemis";
             this.BUT_resumemis.UseVisualStyleBackColor = true;
@@ -514,6 +625,9 @@
             // 
             // BUT_mountmode
             // 
+            this.BUT_mountmode.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_mountmode.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_mountmode.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_mountmode, "BUT_mountmode");
             this.BUT_mountmode.Name = "BUT_mountmode";
             this.toolTip1.SetToolTip(this.BUT_mountmode, resources.GetString("BUT_mountmode.ToolTip"));
@@ -524,6 +638,16 @@
             // 
             this.modifyandSetSpeed.ButtonText = "Change Speed";
             resources.ApplyResources(this.modifyandSetSpeed, "modifyandSetSpeed");
+            this.modifyandSetSpeed.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.modifyandSetSpeed.Minimum = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
             this.modifyandSetSpeed.Name = "modifyandSetSpeed";
             this.modifyandSetSpeed.Value = new decimal(new int[] {
             100,
@@ -537,6 +661,16 @@
             // 
             this.modifyandSetAlt.ButtonText = "Change Alt";
             resources.ApplyResources(this.modifyandSetAlt, "modifyandSetAlt");
+            this.modifyandSetAlt.Maximum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.modifyandSetAlt.Minimum = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
             this.modifyandSetAlt.Name = "modifyandSetAlt";
             this.modifyandSetAlt.Value = new decimal(new int[] {
             100,
@@ -547,6 +681,9 @@
             // 
             // BUT_ARM
             // 
+            this.BUT_ARM.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_ARM.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_ARM.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_ARM, "BUT_ARM");
             this.BUT_ARM.Name = "BUT_ARM";
             this.toolTip1.SetToolTip(this.BUT_ARM, resources.GetString("BUT_ARM.ToolTip"));
@@ -555,6 +692,9 @@
             // 
             // BUT_joystick
             // 
+            this.BUT_joystick.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_joystick.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_joystick.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_joystick, "BUT_joystick");
             this.BUT_joystick.Name = "BUT_joystick";
             this.toolTip1.SetToolTip(this.BUT_joystick, resources.GetString("BUT_joystick.ToolTip"));
@@ -563,6 +703,9 @@
             // 
             // BUT_quickmanual
             // 
+            this.BUT_quickmanual.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_quickmanual.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_quickmanual.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_quickmanual, "BUT_quickmanual");
             this.BUT_quickmanual.Name = "BUT_quickmanual";
             this.toolTip1.SetToolTip(this.BUT_quickmanual, resources.GetString("BUT_quickmanual.ToolTip"));
@@ -571,6 +714,9 @@
             // 
             // BUT_quickrtl
             // 
+            this.BUT_quickrtl.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_quickrtl.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_quickrtl.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_quickrtl, "BUT_quickrtl");
             this.BUT_quickrtl.Name = "BUT_quickrtl";
             this.toolTip1.SetToolTip(this.BUT_quickrtl, resources.GetString("BUT_quickrtl.ToolTip"));
@@ -579,6 +725,9 @@
             // 
             // BUT_quickauto
             // 
+            this.BUT_quickauto.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_quickauto.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_quickauto.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_quickauto, "BUT_quickauto");
             this.BUT_quickauto.Name = "BUT_quickauto";
             this.toolTip1.SetToolTip(this.BUT_quickauto, resources.GetString("BUT_quickauto.ToolTip"));
@@ -597,6 +746,9 @@
             // 
             // BUT_setwp
             // 
+            this.BUT_setwp.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_setwp.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_setwp.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_setwp, "BUT_setwp");
             this.BUT_setwp.Name = "BUT_setwp";
             this.toolTip1.SetToolTip(this.BUT_setwp, resources.GetString("BUT_setwp.ToolTip"));
@@ -613,6 +765,9 @@
             // 
             // BUT_setmode
             // 
+            this.BUT_setmode.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_setmode.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_setmode.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_setmode, "BUT_setmode");
             this.BUT_setmode.Name = "BUT_setmode";
             this.toolTip1.SetToolTip(this.BUT_setmode, resources.GetString("BUT_setmode.ToolTip"));
@@ -621,6 +776,9 @@
             // 
             // BUT_clear_track
             // 
+            this.BUT_clear_track.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_clear_track.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_clear_track.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_clear_track, "BUT_clear_track");
             this.BUT_clear_track.Name = "BUT_clear_track";
             this.toolTip1.SetToolTip(this.BUT_clear_track, resources.GetString("BUT_clear_track.ToolTip"));
@@ -630,13 +788,16 @@
             // CMB_action
             // 
             this.CMB_action.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CMB_action.DropDownWidth = 110;
+            this.CMB_action.DropDownWidth = 150;
             this.CMB_action.FormattingEnabled = true;
             resources.ApplyResources(this.CMB_action, "CMB_action");
             this.CMB_action.Name = "CMB_action";
             // 
             // BUT_Homealt
             // 
+            this.BUT_Homealt.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_Homealt.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_Homealt.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_Homealt, "BUT_Homealt");
             this.BUT_Homealt.Name = "BUT_Homealt";
             this.toolTip1.SetToolTip(this.BUT_Homealt, resources.GetString("BUT_Homealt.ToolTip"));
@@ -645,6 +806,9 @@
             // 
             // BUT_RAWSensor
             // 
+            this.BUT_RAWSensor.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_RAWSensor.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_RAWSensor.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_RAWSensor, "BUT_RAWSensor");
             this.BUT_RAWSensor.Name = "BUT_RAWSensor";
             this.toolTip1.SetToolTip(this.BUT_RAWSensor, resources.GetString("BUT_RAWSensor.ToolTip"));
@@ -653,6 +817,9 @@
             // 
             // BUTrestartmission
             // 
+            this.BUTrestartmission.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUTrestartmission.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUTrestartmission.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUTrestartmission, "BUTrestartmission");
             this.BUTrestartmission.Name = "BUTrestartmission";
             this.toolTip1.SetToolTip(this.BUTrestartmission, resources.GetString("BUTrestartmission.ToolTip"));
@@ -661,6 +828,9 @@
             // 
             // BUTactiondo
             // 
+            this.BUTactiondo.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUTactiondo.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUTactiondo.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUTactiondo, "BUTactiondo");
             this.BUTactiondo.Name = "BUTactiondo";
             this.toolTip1.SetToolTip(this.BUTactiondo, resources.GetString("BUTactiondo.ToolTip"));
@@ -678,6 +848,9 @@
             // 
             // myButton1
             // 
+            this.myButton1.ColorMouseDown = System.Drawing.Color.Empty;
+            this.myButton1.ColorMouseOver = System.Drawing.Color.Empty;
+            this.myButton1.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.myButton1, "myButton1");
             this.myButton1.Name = "myButton1";
             this.toolTip1.SetToolTip(this.myButton1, resources.GetString("myButton1.ToolTip"));
@@ -686,6 +859,9 @@
             // 
             // myButton2
             // 
+            this.myButton2.ColorMouseDown = System.Drawing.Color.Empty;
+            this.myButton2.ColorMouseOver = System.Drawing.Color.Empty;
+            this.myButton2.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.myButton2, "myButton2");
             this.myButton2.Name = "myButton2";
             this.toolTip1.SetToolTip(this.myButton2, resources.GetString("myButton2.ToolTip"));
@@ -694,11 +870,26 @@
             // 
             // myButton3
             // 
+            this.myButton3.ColorMouseDown = System.Drawing.Color.Empty;
+            this.myButton3.ColorMouseOver = System.Drawing.Color.Empty;
+            this.myButton3.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.myButton3, "myButton3");
             this.myButton3.Name = "myButton3";
             this.toolTip1.SetToolTip(this.myButton3, resources.GetString("myButton3.ToolTip"));
             this.myButton3.UseVisualStyleBackColor = true;
             this.myButton3.Click += new System.EventHandler(this.BUT_quickauto_Click);
+            // 
+            // tabPagePreFlight
+            // 
+            this.tabPagePreFlight.Controls.Add(this.checkListControl1);
+            resources.ApplyResources(this.tabPagePreFlight, "tabPagePreFlight");
+            this.tabPagePreFlight.Name = "tabPagePreFlight";
+            this.tabPagePreFlight.UseVisualStyleBackColor = true;
+            // 
+            // checkListControl1
+            // 
+            resources.ApplyResources(this.checkListControl1, "checkListControl1");
+            this.checkListControl1.Name = "checkListControl1";
             // 
             // tabGauges
             // 
@@ -1182,6 +1373,9 @@
             this.flowLayoutPanelServos.Controls.Add(this.servoOptions5);
             this.flowLayoutPanelServos.Controls.Add(this.servoOptions6);
             this.flowLayoutPanelServos.Controls.Add(this.servoOptions7);
+            this.flowLayoutPanelServos.Controls.Add(this.servoOptions8);
+            this.flowLayoutPanelServos.Controls.Add(this.servoOptions9);
+            this.flowLayoutPanelServos.Controls.Add(this.servoOptions10);
             this.flowLayoutPanelServos.Name = "flowLayoutPanelServos";
             // 
             // servoOptions1
@@ -1226,6 +1420,24 @@
             this.servoOptions7.Name = "servoOptions7";
             this.servoOptions7.thisservo = 11;
             // 
+            // servoOptions8
+            // 
+            resources.ApplyResources(this.servoOptions8, "servoOptions8");
+            this.servoOptions8.Name = "servoOptions8";
+            this.servoOptions8.thisservo = 12;
+            // 
+            // servoOptions9
+            // 
+            resources.ApplyResources(this.servoOptions9, "servoOptions9");
+            this.servoOptions9.Name = "servoOptions9";
+            this.servoOptions9.thisservo = 13;
+            // 
+            // servoOptions10
+            // 
+            resources.ApplyResources(this.servoOptions10, "servoOptions10");
+            this.servoOptions10.Name = "servoOptions10";
+            this.servoOptions10.thisservo = 14;
+            // 
             // tabTLogs
             // 
             this.tabTLogs.Controls.Add(this.tableLayoutPaneltlogs);
@@ -1248,6 +1460,9 @@
             // 
             // BUT_loadtelem
             // 
+            this.BUT_loadtelem.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_loadtelem.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_loadtelem.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_loadtelem, "BUT_loadtelem");
             this.BUT_loadtelem.Name = "BUT_loadtelem";
             this.BUT_loadtelem.UseVisualStyleBackColor = true;
@@ -1282,6 +1497,9 @@
             // 
             // BUT_log2kml
             // 
+            this.BUT_log2kml.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_log2kml.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_log2kml.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_log2kml, "BUT_log2kml");
             this.BUT_log2kml.Name = "BUT_log2kml";
             this.BUT_log2kml.UseVisualStyleBackColor = true;
@@ -1289,6 +1507,9 @@
             // 
             // BUT_playlog
             // 
+            this.BUT_playlog.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_playlog.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_playlog.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_playlog, "BUT_playlog");
             this.BUT_playlog.Name = "BUT_playlog";
             this.BUT_playlog.UseVisualStyleBackColor = true;
@@ -1314,6 +1535,9 @@
             // 
             // BUT_speed10
             // 
+            this.BUT_speed10.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_speed10.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_speed10.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_speed10, "BUT_speed10");
             this.BUT_speed10.Name = "BUT_speed10";
             this.BUT_speed10.Tag = "10";
@@ -1322,6 +1546,9 @@
             // 
             // BUT_speed5
             // 
+            this.BUT_speed5.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_speed5.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_speed5.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_speed5, "BUT_speed5");
             this.BUT_speed5.Name = "BUT_speed5";
             this.BUT_speed5.Tag = "5";
@@ -1330,6 +1557,9 @@
             // 
             // BUT_speed2
             // 
+            this.BUT_speed2.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_speed2.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_speed2.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_speed2, "BUT_speed2");
             this.BUT_speed2.Name = "BUT_speed2";
             this.BUT_speed2.Tag = "2";
@@ -1338,6 +1568,9 @@
             // 
             // BUT_speed1
             // 
+            this.BUT_speed1.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_speed1.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_speed1.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_speed1, "BUT_speed1");
             this.BUT_speed1.Name = "BUT_speed1";
             this.BUT_speed1.Tag = "1";
@@ -1346,6 +1579,9 @@
             // 
             // BUT_speed1_2
             // 
+            this.BUT_speed1_2.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_speed1_2.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_speed1_2.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_speed1_2, "BUT_speed1_2");
             this.BUT_speed1_2.Name = "BUT_speed1_2";
             this.BUT_speed1_2.Tag = "0.5";
@@ -1354,6 +1590,9 @@
             // 
             // BUT_speed1_4
             // 
+            this.BUT_speed1_4.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_speed1_4.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_speed1_4.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_speed1_4, "BUT_speed1_4");
             this.BUT_speed1_4.Name = "BUT_speed1_4";
             this.BUT_speed1_4.Tag = "0.25";
@@ -1362,6 +1601,9 @@
             // 
             // BUT_speed1_10
             // 
+            this.BUT_speed1_10.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_speed1_10.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_speed1_10.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_speed1_10, "BUT_speed1_10");
             this.BUT_speed1_10.Name = "BUT_speed1_10";
             this.BUT_speed1_10.Tag = "0.1";
@@ -1382,6 +1624,9 @@
             // 
             // BUT_loganalysis
             // 
+            this.BUT_loganalysis.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_loganalysis.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_loganalysis.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_loganalysis, "BUT_loganalysis");
             this.BUT_loganalysis.Name = "BUT_loganalysis";
             this.BUT_loganalysis.UseVisualStyleBackColor = true;
@@ -1389,6 +1634,9 @@
             // 
             // BUT_DFMavlink
             // 
+            this.BUT_DFMavlink.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_DFMavlink.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_DFMavlink.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_DFMavlink, "BUT_DFMavlink");
             this.BUT_DFMavlink.Name = "BUT_DFMavlink";
             this.BUT_DFMavlink.UseVisualStyleBackColor = true;
@@ -1396,6 +1644,9 @@
             // 
             // but_dflogtokml
             // 
+            this.but_dflogtokml.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_dflogtokml.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_dflogtokml.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.but_dflogtokml, "but_dflogtokml");
             this.but_dflogtokml.Name = "but_dflogtokml";
             this.but_dflogtokml.UseVisualStyleBackColor = true;
@@ -1403,6 +1654,9 @@
             // 
             // but_bintolog
             // 
+            this.but_bintolog.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_bintolog.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_bintolog.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.but_bintolog, "but_bintolog");
             this.but_bintolog.Name = "but_bintolog";
             this.but_bintolog.UseVisualStyleBackColor = true;
@@ -1410,6 +1664,9 @@
             // 
             // BUT_matlab
             // 
+            this.BUT_matlab.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_matlab.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_matlab.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_matlab, "BUT_matlab");
             this.BUT_matlab.Name = "BUT_matlab";
             this.BUT_matlab.UseVisualStyleBackColor = true;
@@ -1417,6 +1674,9 @@
             // 
             // BUT_logbrowse
             // 
+            this.BUT_logbrowse.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_logbrowse.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_logbrowse.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_logbrowse, "BUT_logbrowse");
             this.BUT_logbrowse.Name = "BUT_logbrowse";
             this.BUT_logbrowse.UseVisualStyleBackColor = true;
@@ -1445,6 +1705,9 @@
             // 
             // BUT_edit_selected
             // 
+            this.BUT_edit_selected.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_edit_selected.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_edit_selected.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_edit_selected, "BUT_edit_selected");
             this.BUT_edit_selected.Name = "BUT_edit_selected";
             this.BUT_edit_selected.UseVisualStyleBackColor = true;
@@ -1457,6 +1720,9 @@
             // 
             // BUT_run_script
             // 
+            this.BUT_run_script.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_run_script.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_run_script.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_run_script, "BUT_run_script");
             this.BUT_run_script.Name = "BUT_run_script";
             this.BUT_run_script.UseVisualStyleBackColor = true;
@@ -1464,6 +1730,9 @@
             // 
             // BUT_abort_script
             // 
+            this.BUT_abort_script.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_abort_script.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_abort_script.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_abort_script, "BUT_abort_script");
             this.BUT_abort_script.Name = "BUT_abort_script";
             this.BUT_abort_script.UseVisualStyleBackColor = true;
@@ -1476,6 +1745,9 @@
             // 
             // BUT_select_script
             // 
+            this.BUT_select_script.ColorMouseDown = System.Drawing.Color.Empty;
+            this.BUT_select_script.ColorMouseOver = System.Drawing.Color.Empty;
+            this.BUT_select_script.ColorNotEnabled = System.Drawing.Color.Empty;
             resources.ApplyResources(this.BUT_select_script, "BUT_select_script");
             this.BUT_select_script.Name = "BUT_select_script";
             this.BUT_select_script.UseVisualStyleBackColor = true;
@@ -1513,6 +1785,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.ContextMenuStrip = this.contextMenuStripMap;
+            this.splitContainer1.Panel2.Controls.Add(this.but_disablejoystick);
             this.splitContainer1.Panel2.Controls.Add(this.distanceBar1);
             this.splitContainer1.Panel2.Controls.Add(this.windDir1);
             this.splitContainer1.Panel2.Controls.Add(this.label6);
@@ -1544,10 +1817,13 @@
             this.flyToHereAltToolStripMenuItem,
             this.addPoiToolStripMenuItem,
             this.pointCameraHereToolStripMenuItem,
+            this.PointCameraCoordsToolStripMenuItem1,
             this.triggerCameraToolStripMenuItem,
             this.flightPlannerToolStripMenuItem,
             this.setHomeHereToolStripMenuItem,
-            this.takeOffToolStripMenuItem});
+            this.takeOffToolStripMenuItem,
+            this.onOffCameraOverlapToolStripMenuItem,
+            this.altitudeAngelSettingsToolStripMenuItem});
             this.contextMenuStripMap.Name = "contextMenuStrip1";
             resources.ApplyResources(this.contextMenuStripMap, "contextMenuStripMap");
             // 
@@ -1567,7 +1843,8 @@
             // 
             this.addPoiToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.deleteToolStripMenuItem,
-            this.saveFileToolStripMenuItem});
+            this.saveFileToolStripMenuItem,
+            this.loadFileToolStripMenuItem});
             this.addPoiToolStripMenuItem.Name = "addPoiToolStripMenuItem";
             resources.ApplyResources(this.addPoiToolStripMenuItem, "addPoiToolStripMenuItem");
             this.addPoiToolStripMenuItem.Click += new System.EventHandler(this.addPoiToolStripMenuItem_Click);
@@ -1584,11 +1861,23 @@
             resources.ApplyResources(this.saveFileToolStripMenuItem, "saveFileToolStripMenuItem");
             this.saveFileToolStripMenuItem.Click += new System.EventHandler(this.saveFileToolStripMenuItem_Click);
             // 
+            // loadFileToolStripMenuItem
+            // 
+            this.loadFileToolStripMenuItem.Name = "loadFileToolStripMenuItem";
+            resources.ApplyResources(this.loadFileToolStripMenuItem, "loadFileToolStripMenuItem");
+            this.loadFileToolStripMenuItem.Click += new System.EventHandler(this.loadFileToolStripMenuItem_Click);
+            // 
             // pointCameraHereToolStripMenuItem
             // 
             this.pointCameraHereToolStripMenuItem.Name = "pointCameraHereToolStripMenuItem";
             resources.ApplyResources(this.pointCameraHereToolStripMenuItem, "pointCameraHereToolStripMenuItem");
             this.pointCameraHereToolStripMenuItem.Click += new System.EventHandler(this.pointCameraHereToolStripMenuItem_Click);
+            // 
+            // PointCameraCoordsToolStripMenuItem1
+            // 
+            this.PointCameraCoordsToolStripMenuItem1.Name = "PointCameraCoordsToolStripMenuItem1";
+            resources.ApplyResources(this.PointCameraCoordsToolStripMenuItem1, "PointCameraCoordsToolStripMenuItem1");
+            this.PointCameraCoordsToolStripMenuItem1.Click += new System.EventHandler(this.PointCameraCoordsToolStripMenuItem1_Click);
             // 
             // triggerCameraToolStripMenuItem
             // 
@@ -1614,10 +1903,33 @@
             resources.ApplyResources(this.takeOffToolStripMenuItem, "takeOffToolStripMenuItem");
             this.takeOffToolStripMenuItem.Click += new System.EventHandler(this.takeOffToolStripMenuItem_Click);
             // 
+            // onOffCameraOverlapToolStripMenuItem
+            // 
+            this.onOffCameraOverlapToolStripMenuItem.CheckOnClick = true;
+            this.onOffCameraOverlapToolStripMenuItem.Name = "onOffCameraOverlapToolStripMenuItem";
+            resources.ApplyResources(this.onOffCameraOverlapToolStripMenuItem, "onOffCameraOverlapToolStripMenuItem");
+            this.onOffCameraOverlapToolStripMenuItem.Click += new System.EventHandler(this.onOffCameraOverlapToolStripMenuItem_Click);
+            // 
+            // altitudeAngelSettingsToolStripMenuItem
+            // 
+            this.altitudeAngelSettingsToolStripMenuItem.Name = "altitudeAngelSettingsToolStripMenuItem";
+            resources.ApplyResources(this.altitudeAngelSettingsToolStripMenuItem, "altitudeAngelSettingsToolStripMenuItem");
+            this.altitudeAngelSettingsToolStripMenuItem.Click += new System.EventHandler(this.altitudeAngelSettingsToolStripMenuItem_Click);
+            // 
+            // but_disablejoystick
+            // 
+            this.but_disablejoystick.ColorMouseDown = System.Drawing.Color.Empty;
+            this.but_disablejoystick.ColorMouseOver = System.Drawing.Color.Empty;
+            this.but_disablejoystick.ColorNotEnabled = System.Drawing.Color.Empty;
+            resources.ApplyResources(this.but_disablejoystick, "but_disablejoystick");
+            this.but_disablejoystick.Name = "but_disablejoystick";
+            this.but_disablejoystick.UseVisualStyleBackColor = true;
+            this.but_disablejoystick.Click += new System.EventHandler(this.but_disablejoystick_Click);
+            // 
             // distanceBar1
             // 
             resources.ApplyResources(this.distanceBar1, "distanceBar1");
-            this.distanceBar1.BackColor = System.Drawing.Color.Transparent;
+            this.distanceBar1.BackColor = System.Drawing.Color.Black;
             this.distanceBar1.Name = "distanceBar1";
             this.distanceBar1.totaldist = 100F;
             this.distanceBar1.traveleddist = 0F;
@@ -1641,24 +1953,28 @@
             resources.ApplyResources(this.label6, "label6");
             this.label6.ForeColor = System.Drawing.Color.White;
             this.label6.Name = "label6";
+            this.label6.Tag = "custom";
             // 
             // label5
             // 
             resources.ApplyResources(this.label5, "label5");
             this.label5.ForeColor = System.Drawing.Color.Green;
             this.label5.Name = "label5";
+            this.label5.Tag = "custom";
             // 
             // label3
             // 
             resources.ApplyResources(this.label3, "label3");
             this.label3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(128)))), ((int)(((byte)(0)))));
             this.label3.Name = "label3";
+            this.label3.Tag = "custom";
             // 
             // label4
             // 
             resources.ApplyResources(this.label4, "label4");
             this.label4.ForeColor = System.Drawing.Color.Red;
             this.label4.Name = "label4";
+            this.label4.Tag = "custom";
             // 
             // lbl_hdop
             // 
@@ -1678,6 +1994,7 @@
             // 
             // gMapControl1
             // 
+            this.gMapControl1.BackColor = System.Drawing.Color.Black;
             this.gMapControl1.Bearing = 0F;
             this.gMapControl1.CanDragMap = true;
             this.gMapControl1.ContextMenuStrip = this.contextMenuStripMap;
@@ -1696,9 +2013,11 @@
             this.gMapControl1.RetryLoadTile = 0;
             this.gMapControl1.RoutesEnabled = true;
             this.gMapControl1.ScaleMode = GMap.NET.WindowsForms.ScaleModes.Fractional;
+            this.gMapControl1.SelectedArea = ((GMap.NET.RectLatLng)(resources.GetObject("gMapControl1.SelectedArea")));
             this.gMapControl1.SelectedAreaFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(65)))), ((int)(((byte)(105)))), ((int)(((byte)(225)))));
             this.gMapControl1.ShowTileGridLines = false;
             this.gMapControl1.Zoom = 3D;
+            this.gMapControl1.OnPositionChanged += new GMap.NET.PositionChanged(this.gMapControl1_OnPositionChanged);
             this.gMapControl1.Click += new System.EventHandler(this.gMapControl1_Click);
             this.gMapControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.gMapControl1_MouseDown);
             this.gMapControl1.MouseLeave += new System.EventHandler(this.gMapControl1_MouseLeave);
@@ -1730,6 +2049,7 @@
             // coords1
             // 
             this.coords1.Alt = 0D;
+            this.coords1.AltSource = "";
             this.coords1.AltUnit = "m";
             this.coords1.DataBindings.Add(new System.Windows.Forms.Binding("Alt", this.bindingSource1, "alt", true));
             this.coords1.DataBindings.Add(new System.Windows.Forms.Binding("Lat", this.bindingSource1, "lat", true));
@@ -1838,9 +2158,9 @@
             // 
             // FlightData
             // 
-            resources.ApplyResources(this, "$this");
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.Controls.Add(this.MainH);
+            resources.ApplyResources(this, "$this");
             this.MinimumSize = new System.Drawing.Size(1008, 462);
             this.Name = "FlightData";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FlightData_FormClosing);
@@ -1861,9 +2181,11 @@
             this.contextMenuStripactionstab.ResumeLayout(false);
             this.tabQuick.ResumeLayout(false);
             this.tableLayoutPanelQuick.ResumeLayout(false);
+            this.contextMenuStripQuickView.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceQuickTab)).EndInit();
             this.tabActions.ResumeLayout(false);
             this.tabActionsSimple.ResumeLayout(false);
+            this.tabPagePreFlight.ResumeLayout(false);
             this.tabGauges.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceGaugesTab)).EndInit();
             this.tabServo.ResumeLayout(false);
@@ -1924,12 +2246,12 @@
         private System.Windows.Forms.NumericUpDown Zoomlevel;
         private Controls.MyLabel label1;
         private System.Windows.Forms.CheckBox CHK_autopan;
-        private Controls.myGMAP gMapControl1;
+        public Controls.myGMAP gMapControl1;
         private ZedGraph.ZedGraphControl zg1;
-        private System.Windows.Forms.TabControl tabControlactions;
+        public System.Windows.Forms.TabControl tabControlactions;
         private System.Windows.Forms.TabPage tabGauges;
-        private System.Windows.Forms.TabPage tabStatus;
-        private System.Windows.Forms.TabPage tabActions;
+        public System.Windows.Forms.TabPage tabStatus;
+        public System.Windows.Forms.TabPage tabActions;
         private System.Windows.Forms.TabPage tabTLogs;
         private System.Windows.Forms.ComboBox CMB_modes;
         private Controls.MyButton BUT_setmode;
@@ -1941,8 +2263,6 @@
         private Controls.MyButton BUT_log2kml;
         private Controls.MyButton BUT_joystick;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.ToolStripMenuItem recordHudToAVIToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem stopRecordToolStripMenuItem;
         private Controls.MyLabel lbl_logpercent;
         private System.Windows.Forms.ToolStripMenuItem pointCameraHereToolStripMenuItem;
         private System.Windows.Forms.SplitContainer splitContainer1;
@@ -1950,7 +2270,6 @@
         private Controls.MyLabel lbl_sats;
         private Controls.HSI Gheading;
         private Controls.MyLabel lbl_playbackspeed;
-        private System.Windows.Forms.ToolStripMenuItem setMJPEGSourceToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem setAspectRatioToolStripMenuItem;
         private System.Windows.Forms.TabPage tabQuick;
         private Controls.QuickView quickView3;
@@ -1969,7 +2288,7 @@
         private System.Windows.Forms.ToolStripMenuItem triggerCameraToolStripMenuItem;
         private Controls.MyTrackBar TRK_zoom;
         private Controls.MyLabel LBL_logfn;
-        private System.Windows.Forms.TabPage tabServo;
+        public System.Windows.Forms.TabPage tabServo;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelServos;
         private Controls.ServoOptions servoOptions1;
         private Controls.ServoOptions servoOptions2;
@@ -1979,6 +2298,9 @@
         private Controls.ServoOptions servoOptions5;
         private Controls.ServoOptions servoOptions6;
         private Controls.ServoOptions servoOptions7;
+        private Controls.ServoOptions servoOptions8;
+        private Controls.ServoOptions servoOptions9;
+        private Controls.ServoOptions servoOptions10;
         private System.Windows.Forms.BindingSource bindingSourceHud;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelQuick;
         private System.Windows.Forms.Panel panel2;
@@ -1996,7 +2318,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TabPage tabScripts;
+        public System.Windows.Forms.TabPage tabScripts;
         private Controls.MyButton BUT_edit_selected;
         private System.Windows.Forms.Label labelSelectedScript;
         private Controls.MyButton BUT_run_script;
@@ -2017,19 +2339,18 @@
         private Controls.MyButton BUT_matlab;
         private System.Windows.Forms.ComboBox CMB_mountmode;
         private Controls.MyButton BUT_mountmode;
-        private Controls.WindDir windDir1;
+        public Controls.WindDir windDir1;
         private Controls.MyButton but_bintolog;
         private Controls.MyButton but_dflogtokml;
         private Controls.MyButton BUT_DFMavlink;
         private System.Windows.Forms.TabPage tabPagemessages;
         private System.Windows.Forms.TextBox txt_messagebox;
         private System.Windows.Forms.Timer Messagetabtimer;
-        private System.Windows.Forms.TabPage tabActionsSimple;
+        public System.Windows.Forms.TabPage tabActionsSimple;
         private Controls.MyButton myButton1;
         private Controls.MyButton myButton2;
         private Controls.MyButton myButton3;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripactionstab;
-        private System.Windows.Forms.ToolStripMenuItem dropOutToolStripMenuItem;
         private Controls.MyButton BUT_loganalysis;
         private System.Windows.Forms.ToolStripMenuItem addPoiToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
@@ -2037,6 +2358,23 @@
         private Controls.DistanceBar distanceBar1;
         private System.Windows.Forms.ToolStripMenuItem takeOffToolStripMenuItem;
         private Controls.MyButton BUT_resumemis;
-
+        private System.Windows.Forms.TabPage tabPagePreFlight;
+        private Controls.PreFlight.CheckListControl checkListControl1;
+        private System.Windows.Forms.ToolStripMenuItem swapWithMapToolStripMenuItem;
+        private Controls.MyButton BUT_abortland;
+        private Controls.MyButton but_disablejoystick;
+        private System.Windows.Forms.ToolStripMenuItem videoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem recordHudToAVIToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setMJPEGSourceToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem stopRecordToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem startCameraToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem customizeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem PointCameraCoordsToolStripMenuItem1;
+        private Controls.ModifyandSet modifyandSetLoiterRad;
+        private System.Windows.Forms.ToolStripMenuItem onOffCameraOverlapToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem altitudeAngelSettingsToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStripQuickView;
+        private System.Windows.Forms.ToolStripMenuItem setViewCountToolStripMenuItem;
     }
 }

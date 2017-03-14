@@ -22,12 +22,30 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         public ConfigPlanner()
         {
             InitializeComponent();
+            CMB_Layout.Items.Add(DisplayNames.Basic);
+            CMB_Layout.Items.Add(DisplayNames.Advanced);
+
+            txt_log_dir.TextChanged += OnLogDirTextChanged;
+
         }
+
 
         // Called every time that this control is made current in the backstage view
         public void Activate()
         {
             startup = true; // flag to ignore changes while we programatically populate controls
+            if (MainV2.DisplayConfiguration.displayName == DisplayNames.Advanced)
+            {
+                CMB_Layout.SelectedIndex = 1;
+            }
+            else if (MainV2.DisplayConfiguration.displayName == DisplayNames.Basic)
+            {
+                CMB_Layout.SelectedIndex = 0;
+            }
+            else
+            {
+                CMB_Layout.SelectedIndex = 0;
+            }
 
 
             CMB_osdcolor.DataSource = Enum.GetNames(typeof (KnownColor));
@@ -41,7 +59,11 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             CMB_theme.Text = ThemeManager.CurrentTheme.ToString();
 
             // setup language selection
-            var cultureCodes = new[] {"en-US", "zh-Hans", "zh-TW", "ru-RU", "Fr", "Pl", "it-IT", "es-ES", "de-DE"};
+            var cultureCodes = new[]
+            {
+                "en-US", "zh-Hans", "zh-TW", "ru-RU", "Fr", "Pl", "it-IT", "es-ES", "de-DE", "ja-JP", "id-ID", "ko-KR",
+                "ar", "pt-BR"
+            };
 
             _languages = cultureCodes
                 .Select(CultureInfoEx.GetCultureInfo)
@@ -89,12 +111,12 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             SetCheckboxFromConfig("speechlowspeedenabled", CHK_speechlowspeed);
             SetCheckboxFromConfig("beta_updates", CHK_beta);
             SetCheckboxFromConfig("password_protect", CHK_Password);
-            SetCheckboxFromConfig("advancedview", CHK_advancedview);
             SetCheckboxFromConfig("showairports", CHK_showairports);
             SetCheckboxFromConfig("enableadsb", chk_ADSB);
+            SetCheckboxFromConfig("norcreceiver", chk_norcreceiver);
 
             // this can't fail because it set at startup
-            NUM_tracklength.Value = int.Parse(MainV2.config["NUM_tracklength"].ToString());
+            NUM_tracklength.Value = Settings.Instance.GetInt32("NUM_tracklength");
 
             // get wps on connect
             SetCheckboxFromConfig("loadwpsonconnect", CHK_loadwponconnect);
@@ -116,32 +138,35 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             SetCheckboxFromConfig("CHK_disttohomeflightdata", CHK_disttohomeflightdata);
 
             //set hud color state
-            var hudcolor = (string) MainV2.config["hudcolor"];
-            var index = CMB_osdcolor.Items.IndexOf(hudcolor ?? "White");
+            var hudcolor = Settings.Instance["hudcolor"];
+            if (hudcolor != null)
+            {
+                var index = CMB_osdcolor.Items.IndexOf(hudcolor ?? "White");
+                try
+                {
+                    CMB_osdcolor.SelectedIndex = index;
+                }
+                catch
+                {
+                }
+            }
+
+
+            if (Settings.Instance["distunits"] != null)
+                CMB_distunits.Text = Settings.Instance["distunits"].ToString();
+            if (Settings.Instance["speedunits"] != null)
+                CMB_speedunits.Text = Settings.Instance["speedunits"].ToString();
+
             try
             {
-                CMB_osdcolor.SelectedIndex = index;
-            }
-            catch
-            {
-            }
-
-
-            if (MainV2.config["distunits"] != null)
-                CMB_distunits.Text = MainV2.config["distunits"].ToString();
-            if (MainV2.config["speedunits"] != null)
-                CMB_speedunits.Text = MainV2.config["speedunits"].ToString();
-
-            try
-            {
-                if (MainV2.config["video_device"] != null)
+                if (Settings.Instance["video_device"] != null)
                 {
                     CMB_videosources_Click(this, null);
-                    CMB_videosources.SelectedIndex = int.Parse(MainV2.config["video_device"].ToString());
+                    CMB_videosources.SelectedIndex = Settings.Instance.GetInt32("video_device");
 
-                    if (MainV2.getConfig("video_options") != "" && CMB_videosources.Text != "")
+                    if (Settings.Instance["video_options"] != "" && CMB_videosources.Text != "")
                     {
-                        CMB_videoresolutions.SelectedIndex = int.Parse(MainV2.getConfig("video_options"));
+                        CMB_videoresolutions.SelectedIndex = Settings.Instance.GetInt32("video_options");
                     }
                 }
             }
@@ -150,7 +175,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             }
 
 
-            txt_log_dir.Text = MainV2.LogDir;
+            txt_log_dir.Text = Settings.Instance.LogDir;
 
             startup = false;
         }
@@ -171,9 +196,9 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
                 MainV2.cam.Start();
 
-                MainV2.config["video_device"] = CMB_videosources.SelectedIndex;
+                Settings.Instance["video_device"] = CMB_videosources.SelectedIndex.ToString();
 
-                MainV2.config["video_options"] = CMB_videoresolutions.SelectedIndex;
+                Settings.Instance["video_options"] = CMB_videoresolutions.SelectedIndex.ToString();
 
                 BUT_videostart.Enabled = false;
             }
@@ -259,11 +284,11 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
             CMB_videoresolutions.DataSource = modes;
 
-            if (MainV2.getConfig("video_options") != "" && CMB_videosources.Text != "")
+            if (Settings.Instance["video_options"] != "" && CMB_videosources.Text != "")
             {
                 try
                 {
-                    CMB_videoresolutions.SelectedIndex = int.Parse(MainV2.getConfig("video_options"));
+                    CMB_videoresolutions.SelectedIndex = Settings.Instance.GetInt32("video_options");
                 }
                 catch
                 {
@@ -274,13 +299,13 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         private void CHK_hudshow_CheckedChanged(object sender, EventArgs e)
         {
             FlightData.myhud.hudon = CHK_hudshow.Checked;
-            MainV2.config["CHK_hudshow"] = CHK_hudshow.Checked;
+            Settings.Instance["CHK_hudshow"] = CHK_hudshow.Checked.ToString();
         }
 
         private void CHK_enablespeech_CheckedChanged(object sender, EventArgs e)
         {
             MainV2.speechEnable = CHK_enablespeech.Checked;
-            MainV2.config["speechenable"] = CHK_enablespeech.Checked;
+            Settings.Instance["speechenable"] = CHK_enablespeech.Checked.ToString();
             if (MainV2.speechEngine != null)
                 MainV2.speechEngine.SpeakAsyncCancelAll();
 
@@ -324,7 +349,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
                 return;
             if (CMB_osdcolor.Text != "")
             {
-                MainV2.config["hudcolor"] = CMB_osdcolor.Text;
+                Settings.Instance["hudcolor"] = CMB_osdcolor.Text;
                 FlightData.myhud.hudcolor =
                     Color.FromKnownColor((KnownColor) Enum.Parse(typeof (KnownColor), CMB_osdcolor.Text));
             }
@@ -334,17 +359,17 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["speechwaypointenabled"] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance["speechwaypointenabled"] = ((CheckBox) sender).Checked.ToString();
 
             if (((CheckBox) sender).Checked)
             {
                 var speechstring = "Heading to Waypoint {wpn}";
-                if (MainV2.config["speechwaypoint"] != null)
-                    speechstring = MainV2.config["speechwaypoint"].ToString();
+                if (Settings.Instance["speechwaypoint"] != null)
+                    speechstring = Settings.Instance["speechwaypoint"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Notification", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechwaypoint"] = speechstring;
+                Settings.Instance["speechwaypoint"] = speechstring;
             }
         }
 
@@ -352,17 +377,17 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["speechmodeenabled"] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance["speechmodeenabled"] = ((CheckBox) sender).Checked.ToString();
 
             if (((CheckBox) sender).Checked)
             {
                 var speechstring = "Mode changed to {mode}";
-                if (MainV2.config["speechmode"] != null)
-                    speechstring = MainV2.config["speechmode"].ToString();
+                if (Settings.Instance["speechmode"] != null)
+                    speechstring = Settings.Instance["speechmode"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Notification", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechmode"] = speechstring;
+                Settings.Instance["speechmode"] = speechstring;
             }
         }
 
@@ -370,17 +395,17 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["speechcustomenabled"] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance["speechcustomenabled"] = ((CheckBox) sender).Checked.ToString();
 
             if (((CheckBox) sender).Checked)
             {
                 var speechstring = "Heading to Waypoint {wpn}, altitude is {alt}, Ground speed is {gsp} ";
-                if (MainV2.config["speechcustom"] != null)
-                    speechstring = MainV2.config["speechcustom"].ToString();
+                if (Settings.Instance["speechcustom"] != null)
+                    speechstring = Settings.Instance["speechcustom"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Notification", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechcustom"] = speechstring;
+                Settings.Instance["speechcustom"] = speechstring;
             }
         }
 
@@ -410,33 +435,33 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["speechbatteryenabled"] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance["speechbatteryenabled"] = ((CheckBox) sender).Checked.ToString();
 
             if (((CheckBox) sender).Checked)
             {
                 var speechstring = "WARNING, Battery at {batv} Volt, {batp} percent";
-                if (MainV2.config["speechbattery"] != null)
-                    speechstring = MainV2.config["speechbattery"].ToString();
+                if (Settings.Instance["speechbattery"] != null)
+                    speechstring = Settings.Instance["speechbattery"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Notification", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechbattery"] = speechstring;
+                Settings.Instance["speechbattery"] = speechstring;
 
                 speechstring = "9.6";
-                if (MainV2.config["speechbatteryvolt"] != null)
-                    speechstring = MainV2.config["speechbatteryvolt"].ToString();
+                if (Settings.Instance["speechbatteryvolt"] != null)
+                    speechstring = Settings.Instance["speechbatteryvolt"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Battery Level", "What Voltage do you want to warn at?", ref speechstring))
                     return;
-                MainV2.config["speechbatteryvolt"] = speechstring;
+                Settings.Instance["speechbatteryvolt"] = speechstring;
 
                 speechstring = "20";
-                if (MainV2.config["speechbatterypercent"] != null)
-                    speechstring = MainV2.config["speechbatterypercent"].ToString();
+                if (Settings.Instance["speechbatterypercent"] != null)
+                    speechstring = Settings.Instance["speechbatterypercent"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Battery Level", "What percentage do you want to warn at?", ref speechstring))
                     return;
-                MainV2.config["speechbatterypercent"] = speechstring;
+                Settings.Instance["speechbatterypercent"] = speechstring;
             }
         }
 
@@ -451,7 +476,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["distunits"] = CMB_distunits.Text;
+            Settings.Instance["distunits"] = CMB_distunits.Text;
             MainV2.instance.ChangeUnits();
         }
 
@@ -459,7 +484,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["speedunits"] = CMB_speedunits.Text;
+            Settings.Instance["speedunits"] = CMB_speedunits.Text;
             MainV2.instance.ChangeUnits();
         }
 
@@ -467,59 +492,59 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
+            Settings.Instance[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
             MainV2.comPort.MAV.cs.rateattitude = byte.Parse(((ComboBox) sender).Text);
 
             MainV2.comPort.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTRA1, MainV2.comPort.MAV.cs.rateattitude);
-                // request attitude
+            // request attitude
             MainV2.comPort.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTRA2, MainV2.comPort.MAV.cs.rateattitude);
-                // request vfr
+            // request vfr
         }
 
         private void CMB_rateposition_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (startup)
                 return;
-            MainV2.config[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
+            Settings.Instance[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
             MainV2.comPort.MAV.cs.rateposition = byte.Parse(((ComboBox) sender).Text);
 
             MainV2.comPort.requestDatastream(MAVLink.MAV_DATA_STREAM.POSITION, MainV2.comPort.MAV.cs.rateposition);
-                // request gps
+            // request gps
         }
 
         private void CMB_ratestatus_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (startup)
                 return;
-            MainV2.config[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
+            Settings.Instance[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
             MainV2.comPort.MAV.cs.ratestatus = byte.Parse(((ComboBox) sender).Text);
 
             MainV2.comPort.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTENDED_STATUS, MainV2.comPort.MAV.cs.ratestatus);
-                // mode
+            // mode
         }
 
         private void CMB_raterc_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (startup)
                 return;
-            MainV2.config[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
+            Settings.Instance[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
             MainV2.comPort.MAV.cs.raterc = byte.Parse(((ComboBox) sender).Text);
 
             MainV2.comPort.requestDatastream(MAVLink.MAV_DATA_STREAM.RC_CHANNELS, MainV2.comPort.MAV.cs.raterc);
-                // request rc info 
+            // request rc info 
         }
 
         private void CMB_ratesensors_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (startup)
                 return;
-            MainV2.config[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
+            Settings.Instance[((ComboBox) sender).Name] = ((ComboBox) sender).Text;
             MainV2.comPort.MAV.cs.ratesensors = byte.Parse(((ComboBox) sender).Text);
 
             MainV2.comPort.requestDatastream(MAVLink.MAV_DATA_STREAM.EXTRA3, MainV2.comPort.MAV.cs.ratesensors);
-                // request extra stuff - tridge
+            // request extra stuff - tridge
             MainV2.comPort.requestDatastream(MAVLink.MAV_DATA_STREAM.RAW_SENSORS, MainV2.comPort.MAV.cs.ratesensors);
-                // request raw sensor
+            // request raw sensor
         }
 
         private void CHK_mavdebug_CheckedChanged(object sender, EventArgs e)
@@ -529,45 +554,45 @@ namespace MissionPlanner.GCSViews.ConfigurationView
 
         private void CHK_resetapmonconnect_CheckedChanged(object sender, EventArgs e)
         {
-            MainV2.config[((CheckBox) sender).Name] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance[((CheckBox) sender).Name] = ((CheckBox) sender).Checked.ToString();
         }
 
         private void CHK_speechaltwarning_CheckedChanged(object sender, EventArgs e)
         {
             if (startup)
                 return;
-            MainV2.config["speechaltenabled"] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance["speechaltenabled"] = ((CheckBox) sender).Checked.ToString();
 
             if (((CheckBox) sender).Checked)
             {
                 var speechstring = "WARNING, low altitude {alt}";
-                if (MainV2.config["speechalt"] != null)
-                    speechstring = MainV2.config["speechalt"].ToString();
+                if (Settings.Instance["speechalt"] != null)
+                    speechstring = Settings.Instance["speechalt"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Notification", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechalt"] = speechstring;
+                Settings.Instance["speechalt"] = speechstring;
 
                 speechstring = "2";
-                if (MainV2.config["speechaltheight"] != null)
-                    speechstring = MainV2.config["speechaltheight"].ToString();
+                if (Settings.Instance["speechaltheight"] != null)
+                    speechstring = Settings.Instance["speechaltheight"].ToString();
                 if (DialogResult.Cancel ==
                     InputBox.Show("Min Alt", "What altitude do you want to warn at? (relative to home)",
                         ref speechstring))
                     return;
-                MainV2.config["speechaltheight"] = (double.Parse(speechstring)/CurrentState.multiplierdist).ToString();
-                    // save as m
+                Settings.Instance["speechaltheight"] = (double.Parse(speechstring)/CurrentState.multiplierdist).ToString();
+                // save as m
             }
         }
 
         private void NUM_tracklength_ValueChanged(object sender, EventArgs e)
         {
-            MainV2.config["NUM_tracklength"] = NUM_tracklength.Value.ToString();
+            Settings.Instance["NUM_tracklength"] = NUM_tracklength.Value.ToString();
         }
 
         private void CHK_loadwponconnect_CheckedChanged(object sender, EventArgs e)
         {
-            MainV2.config["loadwpsonconnect"] = CHK_loadwponconnect.Checked.ToString();
+            Settings.Instance["loadwpsonconnect"] = CHK_loadwponconnect.Checked.ToString();
         }
 
         private void CHK_GDIPlus_CheckedChanged(object sender, EventArgs e)
@@ -575,7 +600,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (startup)
                 return;
             CustomMessageBox.Show("You need to restart the planner for this to take effect");
-            MainV2.config["CHK_GDIPlus"] = CHK_GDIPlus.Checked.ToString();
+            Settings.Instance["CHK_GDIPlus"] = CHK_GDIPlus.Checked.ToString();
         }
 
         // This load handler now only contains code that should execute once
@@ -631,18 +656,19 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["CHK_maprotation"] = CHK_maprotation.Checked.ToString();
+            Settings.Instance["CHK_maprotation"] = CHK_maprotation.Checked.ToString();
+            FlightData.instance.gMapControl1.Bearing = 0;
         }
 
         private static void SetCheckboxFromConfig(string configKey, CheckBox chk)
         {
-            if (MainV2.config[configKey] != null)
-                chk.Checked = bool.Parse(MainV2.config[configKey].ToString());
+            if (Settings.Instance[configKey] != null)
+                chk.Checked = Settings.Instance.GetBoolean(configKey);
         }
 
         private void CHK_disttohomeflightdata_CheckedChanged(object sender, EventArgs e)
         {
-            MainV2.config["CHK_disttohomeflightdata"] = CHK_disttohomeflightdata.Checked.ToString();
+            Settings.Instance["CHK_disttohomeflightdata"] = CHK_disttohomeflightdata.Checked.ToString();
         }
 
         private void BUT_logdirbrowse_Click(object sender, EventArgs e)
@@ -651,7 +677,15 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 txt_log_dir.Text = ofd.SelectedPath;
-                MainV2.LogDir = ofd.SelectedPath;
+            }
+        }
+
+        private void OnLogDirTextChanged(object sender, EventArgs e)
+        {
+            string path = txt_log_dir.Text;
+            if (!string.IsNullOrEmpty(path) && System.IO.Directory.Exists(path))
+            {
+                Settings.Instance.LogDir = path;
             }
         }
 
@@ -660,11 +694,11 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (startup)
                 return;
 
-            MainV2.config["theme"] = CMB_theme.Text;
+            Settings.Instance["theme"] = CMB_theme.Text;
             ThemeManager.SetTheme((ThemeManager.Themes) Enum.Parse(typeof (ThemeManager.Themes), CMB_theme.Text));
             ThemeManager.ApplyThemeTo(MainV2.instance);
 
-            CustomMessageBox.Show("You may need to restart to see the full effect.");
+            CustomMessageBox.Show("You may need to select another tab or restart to see the full effect.");
         }
 
         private void BUT_themecustom_Click(object sender, EventArgs e)
@@ -677,23 +711,23 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["speecharmenabled"] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance["speecharmenabled"] = ((CheckBox) sender).Checked.ToString();
 
             if (((CheckBox) sender).Checked)
             {
                 var speechstring = "Armed";
-                if (MainV2.config["speecharm"] != null)
-                    speechstring = MainV2.config["speecharm"].ToString();
+                if (Settings.Instance["speecharm"] != null)
+                    speechstring = Settings.Instance["speecharm"];
                 if (DialogResult.Cancel == InputBox.Show("Arm", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speecharm"] = speechstring;
+                Settings.Instance["speecharm"] = speechstring;
 
                 speechstring = "Disarmed";
-                if (MainV2.config["speechdisarm"] != null)
-                    speechstring = MainV2.config["speechdisarm"].ToString();
+                if (Settings.Instance["speechdisarm"] != null)
+                    speechstring = Settings.Instance["speechdisarm"];
                 if (DialogResult.Cancel == InputBox.Show("Disarmed", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechdisarm"] = speechstring;
+                Settings.Instance["speechdisarm"] = speechstring;
             }
         }
 
@@ -712,12 +746,14 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         private void chk_analytics_CheckedChanged(object sender, EventArgs e)
         {
             Tracking.OptOut = chk_analytics.Checked;
-            MainV2.config["analyticsoptout"] = chk_analytics.Checked;
+            Settings.Instance["analyticsoptout"] = chk_analytics.Checked.ToString();
         }
 
         private void CHK_beta_CheckedChanged(object sender, EventArgs e)
         {
-            MainV2.config["beta_updates"] = CHK_beta.Checked;
+            Settings.Instance["beta_updates"] = CHK_beta.Checked.ToString();
+
+            MissionPlanner.Utilities.Update.dobeta = CHK_beta.Checked;
         }
 
         private void CHK_Password_CheckedChanged(object sender, EventArgs e)
@@ -725,7 +761,7 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (startup)
                 return;
 
-            MainV2.config["password_protect"] = CHK_Password.Checked;
+            Settings.Instance["password_protect"] = CHK_Password.Checked.ToString();
             if (CHK_Password.Checked)
             {
                 Password.EnterPassword();
@@ -736,52 +772,46 @@ namespace MissionPlanner.GCSViews.ConfigurationView
         {
             if (startup)
                 return;
-            MainV2.config["speechlowspeedenabled"] = ((CheckBox) sender).Checked.ToString();
+            Settings.Instance["speechlowspeedenabled"] = ((CheckBox) sender).Checked.ToString();
 
             if (((CheckBox) sender).Checked)
             {
                 var speechstring = "Low Ground Speed {gsp}";
-                if (MainV2.config["speechlowgroundspeed"] != null)
-                    speechstring = MainV2.config["speechlowgroundspeed"].ToString();
+                if (Settings.Instance["speechlowgroundspeed"] != null)
+                    speechstring = Settings.Instance["speechlowgroundspeed"];
                 if (DialogResult.Cancel ==
                     InputBox.Show("Ground Speed", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechlowgroundspeed"] = speechstring;
+                Settings.Instance["speechlowgroundspeed"] = speechstring;
 
                 speechstring = "0";
-                if (MainV2.config["speechlowgroundspeedtrigger"] != null)
-                    speechstring = MainV2.config["speechlowgroundspeedtrigger"].ToString();
+                if (Settings.Instance["speechlowgroundspeedtrigger"] != null)
+                    speechstring = Settings.Instance["speechlowgroundspeedtrigger"];
                 if (DialogResult.Cancel ==
                     InputBox.Show("speed trigger", "What speed do you want to warn at (m/s)?", ref speechstring))
                     return;
-                MainV2.config["speechlowgroundspeedtrigger"] = speechstring;
+                Settings.Instance["speechlowgroundspeedtrigger"] = speechstring;
 
                 speechstring = "Low Air Speed {asp}";
-                if (MainV2.config["speechlowairspeed"] != null)
-                    speechstring = MainV2.config["speechlowairspeed"].ToString();
+                if (Settings.Instance["speechlowairspeed"] != null)
+                    speechstring = Settings.Instance["speechlowairspeed"];
                 if (DialogResult.Cancel == InputBox.Show("Air Speed", "What do you want it to say?", ref speechstring))
                     return;
-                MainV2.config["speechlowairspeed"] = speechstring;
+                Settings.Instance["speechlowairspeed"] = speechstring;
 
                 speechstring = "0";
-                if (MainV2.config["speechlowairspeedtrigger"] != null)
-                    speechstring = MainV2.config["speechlowairspeedtrigger"].ToString();
+                if (Settings.Instance["speechlowairspeedtrigger"] != null)
+                    speechstring = Settings.Instance["speechlowairspeedtrigger"];
                 if (DialogResult.Cancel ==
                     InputBox.Show("speed trigger", "What speed do you want to warn at (m/s)?", ref speechstring))
                     return;
-                MainV2.config["speechlowairspeedtrigger"] = speechstring;
+                Settings.Instance["speechlowairspeedtrigger"] = speechstring;
             }
-        }
-
-        private void CHK_advancedview_CheckedChanged(object sender, EventArgs e)
-        {
-            MainV2.config["advancedview"] = CHK_advancedview.Checked.ToString();
-            MainV2.Advanced = CHK_advancedview.Checked;
         }
 
         private void CHK_showairports_CheckedChanged(object sender, EventArgs e)
         {
-            MainV2.config["showairports"] = CHK_showairports.Checked.ToString();
+            Settings.Instance["showairports"] = CHK_showairports.Checked.ToString();
             MainV2.ShowAirports = CHK_showairports.Checked;
         }
 
@@ -793,27 +823,27 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             if (((CheckBox) sender).Checked)
             {
                 var server = "127.0.0.1";
-                if (MainV2.config["adsbserver"] != null)
-                    server = MainV2.config["adsbserver"].ToString();
+                if (Settings.Instance["adsbserver"] != null)
+                    server = Settings.Instance["adsbserver"];
                 if (DialogResult.Cancel == InputBox.Show("Server", "Server IP?", ref server))
                     return;
-                MainV2.config["adsbserver"] = server;
+                Settings.Instance["adsbserver"] = server;
 
                 var port = "30003";
-                if (MainV2.config["adsbport"] != null)
-                    port = MainV2.config["adsbport"].ToString();
+                if (Settings.Instance["adsbport"] != null)
+                    port = Settings.Instance["adsbport"];
                 if (DialogResult.Cancel == InputBox.Show("Server port", "Server port?", ref port))
                     return;
-                MainV2.config["adsbport"] = port;
+                Settings.Instance["adsbport"] = port;
             }
 
-            MainV2.config["enableadsb"] = chk_ADSB.Checked.ToString();
-            MainV2.instance.EnableADSB = CHK_showairports.Checked;
+            Settings.Instance["enableadsb"] = chk_ADSB.Checked.ToString();
+            MainV2.instance.EnableADSB = chk_ADSB.Checked;
         }
 
         private void chk_tfr_CheckedChanged(object sender, EventArgs e)
         {
-            MainV2.config["showtfr"] = chk_tfr.Checked.ToString();
+            Settings.Instance["showtfr"] = chk_tfr.Checked.ToString();
             MainV2.ShowTFR = chk_tfr.Checked;
         }
 
@@ -838,6 +868,35 @@ namespace MissionPlanner.GCSViews.ConfigurationView
             {
                 return Width + " x " + Height + string.Format(" {0:0.00} fps ", 10000000.0/Fps) + Standard;
             }
+        }
+
+        private void chk_temp_CheckedChanged(object sender, EventArgs e)
+        {
+            var temp = new temp();
+            temp.Show();
+        }
+
+        private void chk_norcreceiver_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.Instance["norcreceiver"] = chk_norcreceiver.Checked.ToString();
+        }
+
+        private void but_AAsignin_Click(object sender, EventArgs e)
+        {
+            new Utilities.AltitudeAngel.AASettings().Show(this);
+        }
+
+        private void CMB_Layout_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if ((DisplayNames)CMB_Layout.SelectedItem == DisplayNames.Advanced)
+            {
+                MainV2.DisplayConfiguration = MainV2.DisplayConfiguration.Advanced();
+            }
+            else if ((DisplayNames)CMB_Layout.SelectedItem == DisplayNames.Basic)
+            {
+                MainV2.DisplayConfiguration = MainV2.DisplayConfiguration.Basic();
+            }
+            Settings.Instance["displayview"] = MainV2.DisplayConfiguration.ConvertToString();
         }
     }
 }

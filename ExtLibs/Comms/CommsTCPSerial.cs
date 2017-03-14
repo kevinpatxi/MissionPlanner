@@ -9,7 +9,6 @@ using System.Net; // dns, ip address
 using System.Net.Sockets; // tcplistner
 using log4net;
 using System.IO;
-using MissionPlanner.Controls;
 
 namespace MissionPlanner.Comms
 {
@@ -21,10 +20,12 @@ namespace MissionPlanner.Comms
 
         int retrys = 3;
 
+        bool reconnectnoprompt = false;
+
         public int WriteBufferSize { get; set; }
         public int WriteTimeout { get; set; }
         public bool RtsEnable { get; set; }
-        public Stream BaseStream { get { return this.BaseStream; } }
+        public Stream BaseStream { get { return client.GetStream(); } }
 
         public TcpSerial()
         {
@@ -32,6 +33,7 @@ namespace MissionPlanner.Comms
             //System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 
             Port = "5760";
+            ReadTimeout = 500;
         }
 
         public void toggleDTR()
@@ -53,16 +55,35 @@ namespace MissionPlanner.Comms
         public  Parity Parity { get; set; }
         public  int DataBits { get; set; }
 
-        public string PortName { get; set; }
+        public string PortName
+        {
+            get { return "TCP" + Port; }
+            set { }
+        }
 
-        public  int BytesToRead
+        public int BytesToRead
         {
             get { /*Console.WriteLine(DateTime.Now.Millisecond + " tcp btr " + (client.Available + rbuffer.Length - rbufferread));*/ return (int)client.Available; }
         }
 
         public int BytesToWrite { get { return 0; } }
 
-        public bool IsOpen { get { try { return client.Client.Connected; } catch { return false; } } }
+        public bool IsOpen
+        {
+            get
+            {
+                try
+                {
+                    if (client == null) return false;
+                    if (client.Client == null) return false;
+                    return client.Client.Connected;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
 
         public bool DtrEnable
         {
@@ -87,13 +108,13 @@ namespace MissionPlanner.Comms
 
             host = OnSettings("TCP_host", host);
 
-            //if (!MainV2.MONO)
+            if (!reconnectnoprompt)
             {
-                if (System.Windows.Forms.DialogResult.Cancel == InputBox.Show("remote host", "Enter host name/ip (ensure remote end is already started)", ref host))
+                if (inputboxreturn.Cancel == OnInputBoxShow("remote host", "Enter host name/ip (ensure remote end is already started)", ref host))
                 {
                     throw new Exception("Canceled by request");
                 }
-                if (System.Windows.Forms.DialogResult.Cancel == InputBox.Show("remote Port", "Enter remote port", ref dest))
+                if (inputboxreturn.Cancel == OnInputBoxShow("remote Port", "Enter remote port", ref dest))
                 {
                     throw new Exception("Canceled by request");
                 }
@@ -110,6 +131,8 @@ namespace MissionPlanner.Comms
             client.Client.NoDelay = true;
 
             VerifyConnected();
+
+            reconnectnoprompt = true;
 
             return;
         }

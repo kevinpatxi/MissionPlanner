@@ -8,6 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Ionic.Zip;
+using MissionPlanner.Utilities;
+using SharpKml.Dom;
 
 namespace MissionPlanner.NoFly
 {
@@ -15,7 +17,7 @@ namespace MissionPlanner.NoFly
     {
         static GMapOverlay kmlpolygonsoverlay = new GMapOverlay();
 
-        private static string directory = Application.StartupPath + Path.DirectorySeparatorChar + "NoFly";
+        private static string directory = Settings.GetRunningDirectory() + "NoFly";
 
         public static event EventHandler<NoFlyEventArgs> NoFlyEvent;
 
@@ -29,7 +31,7 @@ namespace MissionPlanner.NoFly
             public GMapOverlay NoFlyZones { get; set; }
         }
 
-        public static void Scan() 
+        public static void Scan()
         {
             var files = Directory.GetFiles(directory, "*.kmz");
 
@@ -38,7 +40,8 @@ namespace MissionPlanner.NoFly
                 try
                 {
                     // get a temp dir
-                    var outputDirectory = Path.GetTempPath() + Path.DirectorySeparatorChar + "mpkml" + DateTime.Now.Ticks;
+                    var outputDirectory = Path.GetTempPath() + Path.DirectorySeparatorChar + "mpkml" +
+                                          DateTime.Now.Ticks;
                     using (var zip = ZipFile.Read(File.OpenRead(file)))
                     {
                         zip.ExtractAll(outputDirectory, ExtractExistingFileAction.OverwriteSilently);
@@ -47,7 +50,7 @@ namespace MissionPlanner.NoFly
                     var kmls = Directory.GetFiles(outputDirectory, "*.kml");
                     foreach (var kml in kmls)
                     {
-                        LoadNoFly(kml);    
+                        LoadNoFly(kml);
                     }
                 }
                 catch
@@ -59,7 +62,6 @@ namespace MissionPlanner.NoFly
                 NoFlyEvent(null, new NoFlyEventArgs(kmlpolygonsoverlay));
         }
 
- 
 
         public static void LoadNoFly(string file)
         {
@@ -90,13 +92,16 @@ namespace MissionPlanner.NoFly
             {
                 //  log.Info(Element.ToString() + " " + Element.Parent);
             }
-            catch { }
+            catch
+            {
+            }
 
             SharpKml.Dom.Document doc = Element as SharpKml.Dom.Document;
             SharpKml.Dom.Placemark pm = Element as SharpKml.Dom.Placemark;
             SharpKml.Dom.Folder folder = Element as SharpKml.Dom.Folder;
             SharpKml.Dom.Polygon polygon = Element as SharpKml.Dom.Polygon;
             SharpKml.Dom.LineString ls = Element as SharpKml.Dom.LineString;
+            MultipleGeometry geom = Element as MultipleGeometry;
 
             if (doc != null)
             {
@@ -106,45 +111,52 @@ namespace MissionPlanner.NoFly
                     //processKML((Element)feat);
                 }
             }
-            else
-                if (folder != null)
+            else if (folder != null)
+            {
+                foreach (SharpKml.Dom.Feature feat in folder.Features)
                 {
-                    foreach (SharpKml.Dom.Feature feat in folder.Features)
-                    {
-                        //Console.WriteLine("feat "+feat.GetType());
-                        //processKML(feat);
-                    }
+                    //Console.WriteLine("feat "+feat.GetType());
+                    //processKML(feat);
                 }
-                else if (pm != null)
+            }
+            else if (pm != null)
+            {
+            }
+            else if (polygon != null)
+            {
+                GMapPolygon kmlpolygon = new GMapPolygon(new List<PointLatLng>(), "kmlpolygon");
+
+                kmlpolygon.Stroke.Color = Color.Purple;
+
+                kmlpolygon.Fill = new SolidBrush(Color.FromArgb(30, Color.Blue));
+
+                foreach (var loc in polygon.OuterBoundary.LinearRing.Coordinates)
                 {
-
+                    kmlpolygon.Points.Add(new PointLatLng(loc.Latitude, loc.Longitude));
                 }
-                else if (polygon != null)
+
+                kmlpolygonsoverlay.Polygons.Add(kmlpolygon);
+            }
+            else if (ls != null)
+            {
+                GMapRoute kmlroute = new GMapRoute(new List<PointLatLng>(), "kmlroute");
+
+                kmlroute.Stroke.Color = Color.Purple;
+
+                foreach (var loc in ls.Coordinates)
                 {
-                    GMapPolygon kmlpolygon = new GMapPolygon(new List<PointLatLng>(), "kmlpolygon");
-
-                    kmlpolygon.Stroke.Color = Color.Purple;
-
-                    foreach (var loc in polygon.OuterBoundary.LinearRing.Coordinates)
-                    {
-                        kmlpolygon.Points.Add(new PointLatLng(loc.Latitude, loc.Longitude));
-                    }
-
-                    kmlpolygonsoverlay.Polygons.Add(kmlpolygon);
+                    kmlroute.Points.Add(new PointLatLng(loc.Latitude, loc.Longitude));
                 }
-                else if (ls != null)
+
+                kmlpolygonsoverlay.Routes.Add(kmlroute);
+            }
+            else if (geom != null)
+            {
+                foreach (var geometry in geom.Geometry)
                 {
-                    GMapRoute kmlroute = new GMapRoute(new List<PointLatLng>(), "kmlroute");
-
-                    kmlroute.Stroke.Color = Color.Purple;
-
-                    foreach (var loc in ls.Coordinates)
-                    {
-                        kmlroute.Points.Add(new PointLatLng(loc.Latitude, loc.Longitude));
-                    }
-
-                    kmlpolygonsoverlay.Routes.Add(kmlroute);
+                    processKML(geometry);
                 }
+            }
         }
     }
 }
